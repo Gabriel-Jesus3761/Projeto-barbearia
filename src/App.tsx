@@ -13,7 +13,7 @@ import { Profissionais } from './pages/Profissionais'
 
 function App() {
   return (
-    <Router>
+    <Router basename="/Projeto-barbearia">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
