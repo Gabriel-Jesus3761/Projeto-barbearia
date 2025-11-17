@@ -127,7 +127,7 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
             )}>
               <div className="w-12 h-12 bg-gold rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                 <img
-                  src="/Projeto-barbearia/assets/images/Logo.png"
+                  src="/Connecta-ServicosPro/assets/images/Logo.png"
                   alt="Logo BarberPro"
                   className="w-full h-full object-cover scale-110"
                 />
