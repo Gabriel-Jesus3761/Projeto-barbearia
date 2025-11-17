@@ -6,9 +6,11 @@ interface HeaderProps {
   title: string
   subtitle?: string
   onMobileMenuClick?: () => void
+  searchValue?: string
+  onSearchChange?: (value: string) => void
 }
 
-export function Header({ title, subtitle, onMobileMenuClick }: HeaderProps) {
+export function Header({ title, subtitle, onMobileMenuClick, searchValue, onSearchChange }: HeaderProps) {
   return (
     <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 md:py-6">
       <div className="flex items-center justify-between gap-4">
@@ -42,6 +44,8 @@ export function Header({ title, subtitle, onMobileMenuClick }: HeaderProps) {
               type="search"
               placeholder="Buscar..."
               className="pl-10 text-sm"
+              value={searchValue || ''}
+              onChange={(e) => onSearchChange?.(e.target.value)}
             />
           </div>
 
