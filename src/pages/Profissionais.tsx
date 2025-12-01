@@ -1,14 +1,68 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useOutletContext } from 'react-router-dom'
-import { Star, Calendar, Plus, Mail, Phone, Users } from 'lucide-react'
+import { Star, Calendar, Plus, Mail, Phone, Users, DollarSign, Percent, X, QrCode, Copy, Check } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { mockProfessionals } from '@/data/mockData'
+import { cn } from '@/lib/utils'
+
+type PaymentType = 'fixed' | 'percentage'
+
+interface PaymentConfig {
+  type: PaymentType
+  fixedValue?: number
+  percentageValue?: number
+}
 
 export function Profissionais() {
   const { setIsMobileMenuOpen } = useOutletContext<{ setIsMobileMenuOpen: (value: boolean) => void }>()
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+  const [isAddProfModalOpen, setIsAddProfModalOpen] = useState(false)
+  const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null)
+  const [paymentType, setPaymentType] = useState<PaymentType>('percentage')
+  const [fixedValue, setFixedValue] = useState('')
+  const [percentageValue, setPercentageValue] = useState('40')
+  const [linkCode] = useState('ABC123XYZ')
+  const [copied, setCopied] = useState(false)
+
+  const handleOpenPaymentModal = (professionalId: string) => {
+    setSelectedProfessional(professionalId)
+    setIsPaymentModalOpen(true)
+  }
+
+  const handleClosePaymentModal = () => {
+    setIsPaymentModalOpen(false)
+    setSelectedProfessional(null)
+    setPaymentType('percentage')
+    setFixedValue('')
+    setPercentageValue('40')
+  }
+
+  const handleSavePayment = () => {
+    const config: PaymentConfig = {
+      type: paymentType,
+      ...(paymentType === 'fixed' ? { fixedValue: parseFloat(fixedValue) } : { percentageValue: parseFloat(percentageValue) })
+    }
+
+    console.log('Configuração de pagamento salva:', {
+      professionalId: selectedProfessional,
+      config
+    })
+
+    alert('Configuração salva com sucesso!')
+    handleClosePaymentModal()
+  }
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(linkCode)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div>
@@ -30,7 +84,12 @@ export function Profissionais() {
             </p>
           </div>
 
-          <Button variant="gold" size="sm" className="w-full sm:w-auto">
+          <Button
+            variant="gold"
+            size="sm"
+            className="w-full sm:w-auto"
+            onClick={() => setIsAddProfModalOpen(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Profissional
           </Button>
@@ -108,16 +167,25 @@ export function Profissionais() {
 
                   {/* Actions */}
                   <div className="space-y-2 pt-4 border-t border-gray-100">
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" size="sm">
                         <Mail className="w-3 h-3 mr-1" />
                         Email
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button variant="outline" size="sm">
                         <Phone className="w-3 h-3 mr-1" />
                         Ligar
                       </Button>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-gold text-gold hover:bg-gold/10"
+                      onClick={() => handleOpenPaymentModal(professional.id)}
+                    >
+                      <DollarSign className="w-3 h-3 mr-1" />
+                      Configurar Pagamento
+                    </Button>
                     <Button variant="ghost" size="sm" className="w-full text-gold hover:text-gold-dark">
                       Ver Perfil Completo
                     </Button>
@@ -128,6 +196,275 @@ export function Profissionais() {
           ))}
         </motion.div>
       </div>
+
+      {/* Modal de Adicionar Profissional */}
+      <AnimatePresence>
+        {isAddProfModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAddProfModalOpen(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      Vincular Profissional
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Compartilhe o QR Code ou código
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsAddProfModalOpen(false)}
+                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-6 space-y-6">
+                  {/* QR Code */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-64 h-64 bg-gray-100 rounded-xl flex items-center justify-center mb-4">
+                      <QrCode className="w-32 h-32 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-500 text-center">
+                      O profissional deve escanear este QR Code com o app
+                    </p>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">ou</span>
+                    </div>
+                  </div>
+
+                  {/* Code */}
+                  <div>
+                    <Label className="text-gray-700 mb-2 block">Código de Vinculação</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={linkCode}
+                        readOnly
+                        className="font-mono text-center text-lg tracking-wider"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={handleCopyCode}
+                        className="px-4"
+                      >
+                        {copied ? (
+                          <Check className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      O profissional pode inserir este código manualmente
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Configuração de Pagamento */}
+      <AnimatePresence>
+        {isPaymentModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleClosePaymentModal}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      Configurar Pagamento
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Defina como o profissional será remunerado
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleClosePaymentModal}
+                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-6 space-y-6">
+                  {/* Tipo de Pagamento */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setPaymentType('percentage')}
+                      className={cn(
+                        "p-6 rounded-xl border-2 transition-all group",
+                        paymentType === 'percentage'
+                          ? "border-gold bg-gold/10"
+                          : "border-gray-200 hover:border-gold/50 hover:bg-gold/5"
+                      )}
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={cn(
+                          "w-12 h-12 rounded-full flex items-center justify-center",
+                          paymentType === 'percentage' ? "bg-gold" : "bg-gray-100 group-hover:bg-gold/20"
+                        )}>
+                          <Percent className={cn(
+                            "w-6 h-6",
+                            paymentType === 'percentage' ? "text-white" : "text-gray-600 group-hover:text-gold"
+                          )} />
+                        </div>
+                        <div className="text-center">
+                          <h4 className={cn(
+                            "font-semibold",
+                            paymentType === 'percentage' ? "text-gold" : "text-gray-900"
+                          )}>
+                            Porcentagem
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1">Por serviço</p>
+                        </div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setPaymentType('fixed')}
+                      className={cn(
+                        "p-6 rounded-xl border-2 transition-all group",
+                        paymentType === 'fixed'
+                          ? "border-gold bg-gold/10"
+                          : "border-gray-200 hover:border-gold/50 hover:bg-gold/5"
+                      )}
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={cn(
+                          "w-12 h-12 rounded-full flex items-center justify-center",
+                          paymentType === 'fixed' ? "bg-gold" : "bg-gray-100 group-hover:bg-gold/20"
+                        )}>
+                          <DollarSign className={cn(
+                            "w-6 h-6",
+                            paymentType === 'fixed' ? "text-white" : "text-gray-600 group-hover:text-gold"
+                          )} />
+                        </div>
+                        <div className="text-center">
+                          <h4 className={cn(
+                            "font-semibold",
+                            paymentType === 'fixed' ? "text-gold" : "text-gray-900"
+                          )}>
+                            Valor Fixo
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1">Mensal</p>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Configuração de Valor */}
+                  {paymentType === 'percentage' ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="percentage" className="text-gray-700">
+                        Porcentagem do Profissional (%)
+                      </Label>
+                      <div className="flex items-center gap-4">
+                        <Input
+                          id="percentage"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={percentageValue}
+                          onChange={(e) => setPercentageValue(e.target.value)}
+                          className="text-lg"
+                        />
+                        <span className="text-sm text-gray-500 whitespace-nowrap">
+                          Estabelecimento: {100 - parseFloat(percentageValue || '0')}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Exemplo: Serviço de R$ 100 → Profissional recebe R$ {parseFloat(percentageValue || '0')} e estabelecimento recebe R$ {100 - parseFloat(percentageValue || '0')}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="fixed" className="text-gray-700">
+                        Valor Mensal Fixo (R$)
+                      </Label>
+                      <Input
+                        id="fixed"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={fixedValue}
+                        onChange={(e) => setFixedValue(e.target.value)}
+                        placeholder="Ex: 3000.00"
+                        className="text-lg"
+                      />
+                      <p className="text-xs text-gray-500">
+                        O profissional receberá este valor fixo mensalmente, independente do número de serviços
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={handleClosePaymentModal}
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="gold"
+                      onClick={handleSavePayment}
+                      className="flex-1"
+                      disabled={paymentType === 'fixed' && !fixedValue}
+                    >
+                      Salvar Configuração
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

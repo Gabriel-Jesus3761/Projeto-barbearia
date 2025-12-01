@@ -12,11 +12,14 @@ import {
   DollarSign,
   UserCheck,
   ShoppingBag,
-  ClipboardList
+  ClipboardList,
+  TrendingUp,
+  Settings
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 
 interface NavItem {
   to?: string
@@ -38,6 +41,7 @@ const navItems: NavItem[] = [
       { to: '/dashboard/agendamentos', icon: ClipboardList, label: 'Agendamentos' },
     ]
   },
+  { to: '/entrada-despesas', icon: TrendingUp, label: 'Entrada/Despesas' },
   { to: '/agendamentos', icon: Calendar, label: 'Agendamentos' },
   { to: '/servicos', icon: Scissors, label: 'Serviços' },
   { to: '/profissionais', icon: Users, label: 'Profissionais' },
@@ -51,7 +55,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOpen }: SidebarProps) {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({
@@ -83,6 +88,17 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
       ...prev,
       [label]: !prev[label]
     }))
+  }
+
+  // Handle logout - volta para seleção de estabelecimento
+  const handleLogout = () => {
+    localStorage.removeItem('selected_business_id')
+    navigate('/selecionar-empresa')
+  }
+
+  // Handle settings
+  const handleSettings = () => {
+    navigate('/configuracoes')
   }
 
   return (
@@ -298,8 +314,9 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
           </ul>
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-gold/20">
+        {/* User Profile & Actions */}
+        <div className="p-4 border-t border-gold/20 space-y-2">
+          {/* User Info */}
           <div className={cn(
             "flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-800/50",
             !isMobile && !shouldExpand && "justify-center px-2"
@@ -323,18 +340,61 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
                 </motion.div>
               )}
             </AnimatePresence>
-            {(shouldExpand || isMobileOpen) && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={logout}
-                className="text-gray-400 hover:text-gold transition-colors flex-shrink-0"
-                title="Sair"
-              >
-                <LogOut className="w-5 h-5" />
-              </motion.button>
-            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-1">
+            {/* Settings Button */}
+            <button
+              onClick={handleSettings}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+                "hover:bg-gold/10 text-gray-300 hover:text-white",
+                !isMobile && !shouldExpand && "justify-center"
+              )}
+              title={!isMobile && !shouldExpand ? "Configurações" : undefined}
+            >
+              <Settings className="w-5 h-5 flex-shrink-0" />
+              <AnimatePresence>
+                {(shouldExpand || isMobileOpen) && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="font-medium whitespace-nowrap overflow-hidden"
+                  >
+                    Configurações
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+                "hover:bg-red-500/10 text-gray-300 hover:text-red-400",
+                !isMobile && !shouldExpand && "justify-center"
+              )}
+              title={!isMobile && !shouldExpand ? "Sair" : undefined}
+            >
+              <LogOut className="w-5 h-5 flex-shrink-0" />
+              <AnimatePresence>
+                {(shouldExpand || isMobileOpen) && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="font-medium whitespace-nowrap overflow-hidden"
+                  >
+                    Sair
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
           </div>
         </div>
       </motion.aside>

@@ -197,32 +197,6 @@ export function ProfissionalDashboard() {
     .filter(apt => apt.status === 'completed')
     .reduce((sum, apt) => sum + apt.price, 0)
 
-  // Verificar conflito de horários
-  const checkTimeConflict = (date: string, startTime: string, endTime: string, excludeId?: string): boolean => {
-    // Verificar se o horário final é depois do inicial
-    if (endTime <= startTime) {
-      return true
-    }
-
-    // Verificar conflitos com outros slots na mesma data (em todos os estabelecimentos)
-    const slotsOnSameDate = scheduleSlots.filter(
-      slot => slot.date === date && slot.id !== excludeId
-    )
-
-    for (const slot of slotsOnSameDate) {
-      // Verificar se há sobreposição de horários
-      if (
-        (startTime >= slot.startTime && startTime < slot.endTime) ||
-        (endTime > slot.startTime && endTime <= slot.endTime) ||
-        (startTime <= slot.startTime && endTime >= slot.endTime)
-      ) {
-        return true
-      }
-    }
-
-    return false
-  }
-
   const handleAddScheduleSlot = () => {
     const { date, startTime, endTime } = newSlot
 

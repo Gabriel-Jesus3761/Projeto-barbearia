@@ -155,6 +155,7 @@ export function SelecionarEmpresa() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8 }}
+                onClick={() => handleSelectBusiness(business.id)}
               >
                 <Card className="h-full cursor-pointer hover:shadow-2xl hover:shadow-gold/10 transition-all duration-300 border-2 border-white/10 hover:border-gold/50 group overflow-hidden bg-white/5 backdrop-blur-sm">
                   {/* Image/Banner */}
@@ -210,17 +211,11 @@ export function SelecionarEmpresa() {
                       </p>
                     </div>
 
-                    {/* Action Button */}
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button
-                        variant="default"
-                        className="w-full bg-gradient-to-r from-gold to-yellow-600 hover:from-yellow-600 hover:to-gold text-black font-semibold"
-                        onClick={() => handleSelectBusiness(business.id)}
-                      >
-                        Gerenciar
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </motion.div>
+                    {/* Action Indicator */}
+                    <div className="flex items-center justify-center gap-2 text-gold font-semibold">
+                      <span>Acessar Dashboard</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>

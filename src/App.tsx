@@ -23,6 +23,8 @@ import { ConfirmacaoAgendamento } from './pages/ConfirmacaoAgendamento'
 import { ProfissionalDashboard } from './pages/ProfissionalDashboard'
 import { ProfissionalPerfil } from './pages/ProfissionalPerfil'
 import { ProfissionalAssociarBarbearia } from './pages/ProfissionalAssociarBarbearia'
+import { ConfiguracoesEstabelecimento } from './pages/ConfiguracoesEstabelecimento'
+import { EntradaDespesas } from './pages/EntradaDespesas'
 
 function App() {
   return (
@@ -83,6 +85,16 @@ function App() {
             }
           />
 
+          {/* Rota de Configurações (sem Layout) */}
+          <Route
+            path="/configuracoes"
+            element={
+              <ProtectedRoute allowedRoles={['owner']}>
+                <ConfiguracoesEstabelecimento />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Rotas do Proprietário (Admin) - Dashboard da Empresa Selecionada */}
           <Route
             path="/dashboard"
@@ -102,6 +114,16 @@ function App() {
           </Route>
 
           {/* Rotas antigas de gerenciamento (agora dentro do dashboard) */}
+          <Route
+            path="/entrada-despesas"
+            element={
+              <ProtectedRoute allowedRoles={['owner']}>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<EntradaDespesas />} />
+          </Route>
           <Route
             path="/agendamentos"
             element={
