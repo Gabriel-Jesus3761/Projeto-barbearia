@@ -31,7 +31,7 @@ import { EntradaDespesas } from './pages/EntradaDespesas'
 
 function App() {
   return (
-    <Router basename="/Connecta-ServicosPro">
+    <Router>
       <AuthProvider>
         <Routes>
           {/* Rotas Públicas com AppLayout (header global) */}

@@ -155,7 +155,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center">
                     <img
-                      src="/Connecta-ServicosPro/assets/images/Logo.png"
+                      src="/assets/images/Logo.png"
                       alt="Connecta ServiçosPro"
                       className="w-full h-full object-cover rounded-xl scale-110"
                     />

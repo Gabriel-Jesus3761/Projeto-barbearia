@@ -33,7 +33,7 @@ export function SelecionarEmpresa() {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-gold to-yellow-600 rounded-full flex items-center justify-center">
                 <img
-                  src="/Connecta-ServicosPro/assets/images/Logo.png"
+                  src="/assets/images/Logo.png"
                   alt="Logo"
                   className="w-full h-full object-cover rounded-full scale-110"
                 />

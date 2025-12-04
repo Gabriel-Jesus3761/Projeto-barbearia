@@ -23,7 +23,7 @@ export function DesktopHeader() {
           >
             <div className="w-12 h-12 bg-gradient-to-br from-gold to-yellow-600 rounded-xl flex items-center justify-center hover:scale-110 transition-transform">
               <img
-                src="/Connecta-ServicosPro/assets/images/Logo.png"
+                src="/assets/images/Logo.png"
                 alt="Connecta ServiçosPro"
                 className="w-full h-full object-cover rounded-xl scale-110"
               />

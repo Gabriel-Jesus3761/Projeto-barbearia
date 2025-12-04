@@ -238,7 +238,7 @@ export function Login() {
                 className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center overflow-hidden"
               >
                 <img
-                  src="/Connecta-ServicosPro/assets/images/Logo.png"
+                  src="/assets/images/Logo.png"
                   alt="Logo"
                   className="w-full h-full object-cover"
                 />
