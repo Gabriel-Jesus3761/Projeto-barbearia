@@ -6,6 +6,9 @@ import { Camera, ArrowLeft, Mail, User as UserIcon, Phone, Save, X, CreditCard, 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ImageCropModal } from '@/components/ImageCropModal'
+import { uploadProfilePhoto, uploadCoverPhoto } from '@/services/storageService'
+import { updateUserProfilePhoto, updateUserCoverPhoto, updateUserProfile, getUserProfile } from '@/services/authService'
 
 export function Perfil() {
   const { user } = useAuth()
@@ -25,6 +28,11 @@ export function Perfil() {
   })
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null)
   const [previewCover, setPreviewCover] = useState<string | null>(null)
+
+  // Estados para o modal de crop
+  const [cropModalOpen, setCropModalOpen] = useState(false)
+  const [cropModalType, setCropModalType] = useState<'avatar' | 'cover'>('avatar')
+  const [tempImageSrc, setTempImageSrc] = useState<string>('')
 
   if (!user) {
     navigate('/login')
@@ -70,7 +78,9 @@ export function Perfil() {
 
       const reader = new FileReader()
       reader.onloadend = () => {
-        setPreviewAvatar(reader.result as string)
+        setTempImageSrc(reader.result as string)
+        setCropModalType('avatar')
+        setCropModalOpen(true)
       }
       reader.readAsDataURL(file)
     }
@@ -94,27 +104,73 @@ export function Perfil() {
 
       const reader = new FileReader()
       reader.onloadend = () => {
-        setPreviewCover(reader.result as string)
+        setTempImageSrc(reader.result as string)
+        setCropModalType('cover')
+        setCropModalOpen(true)
       }
       reader.readAsDataURL(file)
     }
   }
 
+  const handleCropSave = (croppedImage: string) => {
+    if (cropModalType === 'avatar') {
+      setPreviewAvatar(croppedImage)
+    } else {
+      setPreviewCover(croppedImage)
+    }
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
-    // TODO: Implementar upload de foto de perfil e capa no Firebase Storage
-    // TODO: Atualizar documento do usuário no Firestore com as URLs das imagens
-    setTimeout(() => {
-      setIsSaving(false)
+    try {
+      const updates: any = {}
+
+      // Upload e atualização de foto de perfil
+      if (previewAvatar) {
+        const photoURL = await uploadProfilePhoto(user.id, previewAvatar)
+        await updateUserProfilePhoto(user.id, photoURL)
+        updates.photoURL = photoURL
+      }
+
+      // Upload e atualização de foto de capa
+      if (previewCover) {
+        const coverPhotoURL = await uploadCoverPhoto(user.id, previewCover)
+        await updateUserCoverPhoto(user.id, coverPhotoURL)
+        updates.coverPhotoURL = coverPhotoURL
+      }
+
+      // Atualizar nome e telefone se alterados
+      if (formData.name !== user.name || formData.phone !== user.phone) {
+        await updateUserProfile(user.id, {
+          displayName: formData.name,
+          phone: formData.phone,
+        })
+      }
+
+      // Recarregar perfil do usuário para atualizar o contexto
+      const updatedProfile = await getUserProfile(user.id)
+      if (updatedProfile) {
+        // Força atualização da página para refletir as mudanças
+        window.location.reload()
+      }
+
       setIsEditing(false)
-      // TODO: Atualizar o contexto do usuário com os novos dados
-    }, 1500)
+      setPreviewAvatar(null)
+      setPreviewCover(null)
+    } catch (error: any) {
+      console.error('Erro ao salvar perfil:', error)
+      alert('Erro ao salvar perfil: ' + error.message)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleCancel = () => {
     setIsEditing(false)
     setPreviewAvatar(null)
     setPreviewCover(null)
+    setCropModalOpen(false)
+    setTempImageSrc('')
     setFormData({
       name: user.name,
       email: user.email,
@@ -140,7 +196,7 @@ export function Perfil() {
   }
 
   const displayAvatar = previewAvatar || user.avatar
-  const displayCover = previewCover || null // TODO: Adicionar campo coverPhoto no User
+  const displayCover = previewCover || user.coverPhoto
 
   return (
     <div className="min-h-screen bg-black">
@@ -207,7 +263,7 @@ export function Perfil() {
               <div className="absolute inset-0 bg-gradient-to-r from-gold/20 to-purple-500/20" />
             )}
 
-            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/20" />
 
             {/* Botão para editar capa */}
             {isEditing && (
@@ -388,6 +444,16 @@ export function Perfil() {
           </div>
         </div>
       </div>
+
+      {/* Image Crop Modal */}
+      <ImageCropModal
+        isOpen={cropModalOpen}
+        imageSrc={tempImageSrc}
+        onClose={() => setCropModalOpen(false)}
+        onSave={handleCropSave}
+        aspectRatio={cropModalType === 'avatar' ? 1 : 16 / 9}
+        title={cropModalType === 'avatar' ? 'Ajustar Foto de Perfil' : 'Ajustar Foto de Capa'}
+      />
     </div>
   )
 }

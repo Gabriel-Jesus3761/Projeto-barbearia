@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Scissors,
@@ -16,12 +16,14 @@ import {
   CheckCircle2,
   Users,
   Award,
+  Menu,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { businessCategories } from "@/data/mockData";
 import { BusinessCategory } from "@/types";
 import { useState, useRef } from "react";
+import { Sidebar } from "@/components/Sidebar";
 
 const iconMap = {
   Scissors,
@@ -102,6 +104,7 @@ const testimonials = [
 export function Home() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
@@ -119,6 +122,25 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-black">
+      {/* Sidebar */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Menu Button - Fixed Position - Mobile & Desktop */}
+      <AnimatePresence>
+        {!sidebarOpen && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            onClick={() => setSidebarOpen(true)}
+            className="fixed top-4 left-4 md:top-6 md:left-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-gold to-yellow-600 backdrop-blur-xl border-2 border-white/20 flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-2xl hover:shadow-gold/50"
+          >
+            <Menu className="w-6 h-6 md:w-7 md:h-7 text-white" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Hero Section - Premium with Gradient Overlay */}
       <motion.div
         ref={heroRef}

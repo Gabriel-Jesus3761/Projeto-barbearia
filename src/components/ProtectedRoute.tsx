@@ -24,9 +24,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" replace />
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // Redirecionar para página apropriada baseado no role
-    if (user.role === 'client') {
+  if (allowedRoles && user && !allowedRoles.includes(user.activeRole)) {
+    // Redirecionar para página apropriada baseado no activeRole
+    if (user.activeRole === 'client') {
       return <Navigate to="/cliente" replace />
     }
     return <Navigate to="/" replace />

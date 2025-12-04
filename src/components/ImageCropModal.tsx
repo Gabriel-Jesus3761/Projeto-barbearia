@@ -23,7 +23,7 @@ export function ImageCropModal({
   title = 'Ajustar Imagem'
 }: ImageCropModalProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
+  const [zoom, setZoom] = useState(0.5)
   const [rotation, setRotation] = useState(0)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
 
@@ -97,7 +97,7 @@ export function ImageCropModal({
   }
 
   const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev - 0.1, 1))
+    setZoom((prev) => Math.max(prev - 0.1, 0.5))
   }
 
   const handleRotate = () => {
@@ -155,8 +155,9 @@ export function ImageCropModal({
                 onZoomChange={setZoom}
                 onRotationChange={setRotation}
                 onCropComplete={onCropComplete}
-                objectFit="contain"
+                objectFit="horizontal-cover"
                 showGrid={true}
+                restrictPosition={false}
                 style={{
                   containerStyle: {
                     backgroundColor: '#000',
@@ -188,7 +189,7 @@ export function ImageCropModal({
                   </button>
                   <Slider
                     value={[zoom]}
-                    min={1}
+                    min={0.5}
                     max={3}
                     step={0.1}
                     onValueChange={(value) => setZoom(value[0])}

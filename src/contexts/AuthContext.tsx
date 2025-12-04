@@ -21,6 +21,7 @@ export interface User {
   roles: UserRole[] // Array de roles que o usuário possui
   activeRole: UserRole // Role ativo no momento
   avatar?: string
+  coverPhoto?: string
   // Campos específicos
   phone?: string
   cpf?: string
@@ -52,6 +53,7 @@ function profileToUser(profile: UserProfile): User {
     roles: profile.roles,
     activeRole: profile.activeRole,
     avatar: profile.photoURL,
+    coverPhoto: profile.coverPhotoURL,
     phone: profile.phone,
     cpf: profile.cpf,
     gender: profile.gender,

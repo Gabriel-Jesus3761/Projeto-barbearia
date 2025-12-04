@@ -44,6 +44,16 @@ function App() {
             <Route path="/empresas/:businessId" element={<EmpresaDetalhes />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/confirmacao-agendamento" element={<ConfirmacaoAgendamento />} />
+
+            {/* Rota do Profissional dentro do AppLayout */}
+            <Route
+              path="/profissional/associar-barbearia"
+              element={
+                <ProtectedRoute allowedRoles={['professional']}>
+                  <ProfissionalAssociarBarbearia />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
           {/* Rotas do Cliente */}
@@ -52,16 +62,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['client']}>
                 <ClienteDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Rotas do Profissional */}
-          <Route
-            path="/profissional/associar-barbearia"
-            element={
-              <ProtectedRoute allowedRoles={['professional']}>
-                <ProfissionalAssociarBarbearia />
               </ProtectedRoute>
             }
           />

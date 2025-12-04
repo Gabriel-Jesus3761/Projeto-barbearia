@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { validateUserLogin as validateLoginFunction } from './functionsService';
 
 export type UserRole = 'client' | 'professional' | 'owner';
 
@@ -24,6 +25,7 @@ export interface UserProfile {
   roles: UserRole[]; // Array de roles que o usuário possui
   activeRole: UserRole; // Role ativo no momento
   photoURL?: string;
+  coverPhotoURL?: string;
   phone?: string;
   cpf?: string;
   gender?: string;
@@ -309,6 +311,12 @@ export async function registerWithEmail(
     return profile;
   } catch (error: any) {
     console.error('❌ [authService] Erro:', error);
+
+    // Se o email já existe, retorna uma mensagem especial informando sobre o login
+    if (error.code === 'auth/email-already-in-use') {
+      throw new Error('Este email já está em uso. Faça login para adicionar um novo tipo de conta.');
+    }
+
     throw new Error(getAuthErrorMessage(error.code));
   }
 }
@@ -322,9 +330,46 @@ export async function loginWithEmail(
   expectedRole?: UserRole
 ): Promise<UserProfile> {
   try {
+    console.log('📝 [loginWithEmail] Iniciando login...');
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+    console.log('✅ [loginWithEmail] Autenticação bem-sucedida, UID:', user.uid);
 
+    // Validar login usando Cloud Function
+    if (expectedRole) {
+      console.log('📝 [loginWithEmail] Validando perfil via Cloud Function...');
+      try {
+        const validation = await validateLoginFunction(user.uid, email, expectedRole);
+
+        console.log('📊 [loginWithEmail] Resultado da validação:', validation);
+
+        if (!validation.success) {
+          // Usuário não tem perfil completo
+          console.warn('⚠️ [loginWithEmail] Perfil incompleto:', validation.message);
+          throw new Error(validation.message);
+        }
+
+        // Retornar perfil validado
+        if (validation.user) {
+          return {
+            uid: validation.user.uid,
+            email: validation.user.email,
+            displayName: validation.user.name,
+            roles: validation.user.roles as UserRole[],
+            activeRole: validation.user.activeRole as UserRole,
+            photoURL: validation.user.avatar || undefined,
+            phone: validation.user.phone || undefined,
+            createdAt: validation.user.createdAt,
+            updatedAt: serverTimestamp(),
+          };
+        }
+      } catch (funcError: any) {
+        console.error('❌ [loginWithEmail] Erro na Cloud Function, usando fallback:', funcError);
+        // Continuar com o método antigo se a Cloud Function falhar
+      }
+    }
+
+    // Fallback: buscar perfil do Firestore (caso expectedRole não seja fornecido ou Cloud Function falhe)
     let profile = await getUserProfile(user.uid);
 
     // Se o perfil não existir, cria um (caso de usuário criado externamente)
@@ -335,10 +380,12 @@ export async function loginWithEmail(
 
     if (!profile) throw new Error('Erro ao obter perfil do usuário');
 
-    // Verifica se o usuário possui o role esperado
+    // Se o usuário não possui o role esperado, adiciona automaticamente
     if (expectedRole && !profile.roles.includes(expectedRole)) {
-      await signOut(auth);
-      throw new Error(`Você não tem permissão para acessar como ${expectedRole}`);
+      console.log(`📝 [loginWithEmail] Usuário não possui o role ${expectedRole}, adicionando...`);
+      await addRoleToUser(user.uid, expectedRole);
+      profile = await getUserProfile(user.uid);
+      if (!profile) throw new Error('Erro ao atualizar perfil do usuário');
     }
 
     // Se o usuário possui o role, mas não está ativo, alterna
@@ -349,7 +396,8 @@ export async function loginWithEmail(
 
     return profile!;
   } catch (error: any) {
-    throw new Error(getAuthErrorMessage(error.code));
+    console.error('❌ [loginWithEmail] Erro:', error);
+    throw new Error(getAuthErrorMessage(error.code) || error.message);
   }
 }
 
@@ -419,6 +467,117 @@ export async function resetPassword(email: string): Promise<void> {
   try {
     await sendPasswordResetEmail(auth, email);
   } catch (error: any) {
+    throw new Error(getAuthErrorMessage(error.code));
+  }
+}
+
+/**
+ * Atualiza a foto de perfil do usuário
+ */
+export async function updateUserProfilePhoto(uid: string, photoURL: string): Promise<void> {
+  console.log('📝 [updateUserProfilePhoto] Atualizando foto de perfil');
+
+  const userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, {
+    photoURL,
+    updatedAt: serverTimestamp()
+  });
+
+  // Atualizar também no Firebase Auth se o usuário estiver logado
+  if (auth.currentUser && auth.currentUser.uid === uid) {
+    await updateProfile(auth.currentUser, { photoURL });
+  }
+
+  console.log('✅ [updateUserProfilePhoto] Foto de perfil atualizada!');
+}
+
+/**
+ * Atualiza a foto de capa do usuário
+ */
+export async function updateUserCoverPhoto(uid: string, coverPhotoURL: string): Promise<void> {
+  console.log('📝 [updateUserCoverPhoto] Atualizando foto de capa');
+
+  const userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, {
+    coverPhotoURL,
+    updatedAt: serverTimestamp()
+  });
+
+  console.log('✅ [updateUserCoverPhoto] Foto de capa atualizada!');
+}
+
+/**
+ * Atualiza dados do perfil do usuário (nome, telefone, etc)
+ */
+export async function updateUserProfile(uid: string, data: {
+  displayName?: string;
+  phone?: string;
+}): Promise<void> {
+  console.log('📝 [updateUserProfile] Atualizando perfil do usuário');
+
+  const userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, {
+    ...data,
+    updatedAt: serverTimestamp()
+  });
+
+  // Atualizar displayName no Firebase Auth se fornecido
+  if (data.displayName && auth.currentUser && auth.currentUser.uid === uid) {
+    await updateProfile(auth.currentUser, { displayName: data.displayName });
+  }
+
+  console.log('✅ [updateUserProfile] Perfil atualizado com sucesso!');
+}
+
+/**
+ * Verifica se um email já possui conta e retorna os dados do usuário
+ */
+export async function checkEmailExists(email: string): Promise<{ exists: boolean; userData?: UserProfile }> {
+  try {
+    // Tenta fazer uma query no Firestore para ver se existe um usuário com esse email
+    const { collection, query, where, getDocs } = await import('firebase/firestore');
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('email', '==', email));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const userData = querySnapshot.docs[0].data() as UserProfile;
+      return { exists: true, userData };
+    }
+
+    return { exists: false };
+  } catch (error) {
+    console.error('Erro ao verificar email:', error);
+    return { exists: false };
+  }
+}
+
+/**
+ * Valida a senha do usuário e adiciona um novo role
+ */
+export async function addRoleWithPassword(
+  email: string,
+  password: string,
+  newRole: UserRole,
+  cnpj?: string
+): Promise<UserProfile> {
+  try {
+    // Primeiro valida a senha fazendo login
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Adiciona o novo role
+    await addRoleToUser(user.uid, newRole, cnpj);
+
+    // Retorna o perfil atualizado
+    const profile = await getUserProfile(user.uid);
+    if (!profile) throw new Error('Erro ao obter perfil atualizado');
+
+    return profile;
+  } catch (error: any) {
+    if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      throw new Error('Senha incorreta');
+    }
     throw new Error(getAuthErrorMessage(error.code));
   }
 }

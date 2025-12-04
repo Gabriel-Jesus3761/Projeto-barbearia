@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Building2, MapPin, Star, ArrowRight, Check, QrCode, Hash, X, Link as LinkIcon } from 'lucide-react'
+import { Building2, MapPin, Star, ArrowRight, Check, QrCode, Hash, X, Link as LinkIcon, Menu } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +8,8 @@ import { mockBusinesses } from '@/data/mockData'
 import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
 import { Label } from '@/components/ui/label'
+import { Sidebar } from '@/components/Sidebar'
+import { linkProfessionalToBusiness } from '@/services/functionsService'
 
 type LinkMethod = 'qrcode' | 'code' | null
 
@@ -17,6 +19,7 @@ export function ProfissionalAssociarBarbearia() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [linkMethod, setLinkMethod] = useState<LinkMethod>(null)
   const [businessCode, setBusinessCode] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // IDs das barbearias que o profissional já está vinculado
   const linkedBusinessIds = user?.businesses || []
@@ -48,11 +51,20 @@ export function ProfissionalAssociarBarbearia() {
     setLinkMethod(method)
   }
 
-  const handleSubmitCode = () => {
-    if (businessCode.trim()) {
-      // TODO: Implementar lógica de vinculação por código
-      alert(`Vinculando ao estabelecimento com código: ${businessCode}`)
-      handleCloseModal()
+  const handleSubmitCode = async () => {
+    if (!businessCode.trim() || !user) return;
+
+    try {
+      const result = await linkProfessionalToBusiness(user.uid, businessCode.trim());
+
+      if (result.success) {
+        alert(`✅ ${result.message}`);
+        handleCloseModal();
+        // Recarregar a página para mostrar o novo vínculo
+        window.location.reload();
+      }
+    } catch (error: any) {
+      alert(`❌ Erro ao vincular: ${error.message}`);
     }
   }
 
@@ -63,43 +75,24 @@ export function ProfissionalAssociarBarbearia() {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-black/80 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center">
-                <img
-                  src="/Connecta-ServicosPro/assets/images/Logo.png"
-                  alt="Logo"
-                  className="w-full h-full object-cover rounded-full scale-110"
-                />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Connecta ServiçosPro</h1>
-                <p className="text-sm text-gray-400">Área do Profissional</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-white">{user?.name}</p>
-                <p className="text-xs text-gray-400">{user?.email}</p>
-              </div>
-              <Button
-                variant="outline"
-                onClick={logout}
-                className="border-white/10 hover:bg-white/5 text-white"
-              >
-                Sair
-              </Button>
-            </div>
-          </div>
-        </div>
-      </motion.header>
+      {/* Sidebar */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Menu Button - Fixed Position - Mobile & Desktop */}
+      <AnimatePresence>
+        {!sidebarOpen && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            onClick={() => setSidebarOpen(true)}
+            className="fixed top-4 left-4 md:top-6 md:left-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-gold to-yellow-600 backdrop-blur-xl border-2 border-white/20 flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-2xl hover:shadow-gold/50"
+          >
+            <Menu className="w-6 h-6 md:w-7 md:h-7 text-white" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Page Header */}

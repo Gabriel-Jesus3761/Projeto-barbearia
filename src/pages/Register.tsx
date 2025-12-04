@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Mail, Eye, EyeOff, User, ArrowLeft, Phone, CreditCard, Calendar, ChevronDown, Scissors, Crown } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, User, ArrowLeft, Phone, CreditCard, Calendar, ChevronDown, Scissors, Crown, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { registerWithEmail } from "@/services/authService";
+import { registerWithEmail, checkEmailExists, addRoleWithPassword } from "@/services/authService";
 import type { UserRole } from "@/contexts/AuthContext";
 
 // Country codes with flags
@@ -26,6 +26,11 @@ export function Register() {
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]); // Brasil por padrão
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [existingUserData, setExistingUserData] = useState<any>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -311,6 +316,62 @@ export function Register() {
     setIsFocused(false);
   };
 
+  const handleEmailBlur = async () => {
+    if (formData.email && validateEmail(formData.email)) {
+      const result = await checkEmailExists(formData.email);
+      if (result.exists && result.userData) {
+        // Verifica se o usuário já possui o role selecionado
+        if (result.userData.roles.includes(selectedRole)) {
+          setErrors(prev => ({
+            ...prev,
+            email: `Este email já está cadastrado como ${selectedRole === 'client' ? 'Cliente' : selectedRole === 'professional' ? 'Profissional' : 'Proprietário'}. Faça login.`
+          }));
+          setEmailExists(false);
+        } else {
+          setEmailExists(true);
+          setExistingUserData(result.userData);
+          setErrors(prev => ({ ...prev, email: "" }));
+        }
+      } else {
+        setEmailExists(false);
+        setExistingUserData(null);
+      }
+    }
+  };
+
+  const handleUseExistingData = () => {
+    if (existingUserData) {
+      // Preenche os campos com os dados existentes
+      setFormData(prev => ({
+        ...prev,
+        name: existingUserData.displayName || prev.name,
+        phone: existingUserData.phone?.replace(selectedCountry.code, '') || prev.phone,
+        cpf: existingUserData.cpf || prev.cpf,
+        gender: existingUserData.gender || prev.gender,
+        birthDate: existingUserData.birthDate || prev.birthDate,
+      }));
+      setShowPasswordModal(true);
+    }
+  };
+
+  const handleConfirmPassword = async () => {
+    setPasswordError("");
+    setIsLoading(true);
+
+    try {
+      const cnpj = formData.cnpj || undefined;
+      await addRoleWithPassword(formData.email, confirmPassword, selectedRole, cnpj);
+
+      console.log('✅ Novo role adicionado com sucesso!');
+      navigate(`/login?email=${encodeURIComponent(formData.email)}&role=${selectedRole}`);
+    } catch (error: any) {
+      console.error('❌ Erro ao adicionar role:', error);
+      setPasswordError(error.message || "Erro ao confirmar senha");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const roleOptions = [
     {
       value: "client" as UserRole,
@@ -440,6 +501,35 @@ export function Register() {
             <h1 className="text-2xl font-bold text-white mb-1">Criar Conta</h1>
             <p className="text-gray-400 text-sm">Preencha seus dados para começar</p>
           </div>
+
+          {/* Aviso de conta existente */}
+          {emailExists && existingUserData && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl"
+            >
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-green-400">Conta encontrada!</p>
+                  <p className="text-xs text-gray-300 mt-1">
+                    Você já possui uma conta como {existingUserData.roles.map((r: string) =>
+                      r === 'client' ? 'Cliente' : r === 'professional' ? 'Profissional' : 'Proprietário'
+                    ).join(', ')}. Clique abaixo para usar seus dados existentes.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={handleUseExistingData}
+                    className="mt-3 w-full bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30 h-10 font-medium"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Usar dados existentes
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Role Selection - Com animação de foco suave */}
           <div className="relative mb-6">
@@ -732,10 +822,11 @@ export function Register() {
                   placeholder="seu@email.com"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleEmailBlur}
                   className={`
                     w-full h-11 pl-12 pr-4 bg-white/5 border rounded-xl text-white placeholder-gray-500
                     focus:outline-none focus:ring-2 transition-all
-                    ${errors.email ? "border-red-500/50 focus:ring-red-500/30" : `border-white/10 ${colors.ring}`}
+                    ${errors.email ? "border-red-500/50 focus:ring-red-500/30" : emailExists ? `border-green-500/50 ${colors.ring}` : `border-white/10 ${colors.ring}`}
                   `}
                 />
               </div>
@@ -834,6 +925,123 @@ export function Register() {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Modal de Confirmação de Senha */}
+      <AnimatePresence>
+        {showPasswordModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPasswordModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6"
+            >
+              {/* Header */}
+              <div className="flex items-start gap-3 mb-6">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.primary} flex items-center justify-center flex-shrink-0`}>
+                  <Lock className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white">Confirmar Identidade</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Digite sua senha para adicionar o perfil de{" "}
+                    <span className={colors.text}>
+                      {selectedRole === 'client' ? 'Cliente' : selectedRole === 'professional' ? 'Profissional' : 'Proprietário'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Informações preenchidas */}
+              <div className="mb-4 p-3 bg-white/5 rounded-xl border border-white/10">
+                <p className="text-xs font-medium text-gray-400 mb-2">Dados que serão utilizados:</p>
+                <div className="space-y-1 text-sm text-white">
+                  <p>✓ Nome: {formData.name}</p>
+                  <p>✓ CPF: {formData.cpf}</p>
+                  <p>✓ Telefone: {formData.phone}</p>
+                  {formData.cnpj && <p>✓ CNPJ: {formData.cnpj}</p>}
+                </div>
+              </div>
+
+              {/* Campo de senha */}
+              <div className="space-y-2 mb-6">
+                <Label htmlFor="modal-password" className="text-sm font-medium text-gray-300">
+                  Senha da conta existente
+                </Label>
+                <div className="relative">
+                  <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${colors.text}`} />
+                  <input
+                    id="modal-password"
+                    type="password"
+                    placeholder="Digite sua senha"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleConfirmPassword()}
+                    className={`
+                      w-full h-11 pl-12 pr-4 bg-white/5 border rounded-xl text-white placeholder-gray-500
+                      focus:outline-none focus:ring-2 transition-all
+                      ${passwordError ? "border-red-500/50 focus:ring-red-500/30" : `border-white/10 ${colors.ring}`}
+                    `}
+                    autoFocus
+                  />
+                </div>
+                {passwordError && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-xs text-red-400 flex items-center gap-1"
+                  >
+                    <AlertCircle className="w-3 h-3" />
+                    {passwordError}
+                  </motion.p>
+                )}
+              </div>
+
+              {/* Botões */}
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setConfirmPassword("");
+                    setPasswordError("");
+                  }}
+                  variant="outline"
+                  className="flex-1 border-white/10 text-white hover:bg-white/5"
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleConfirmPassword}
+                  className={`flex-1 bg-gradient-to-r ${colors.primary} hover:opacity-90 text-white`}
+                  disabled={isLoading || !confirmPassword}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Confirmando...
+                    </div>
+                  ) : (
+                    "Confirmar"
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
