@@ -24,4 +24,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
+// NÃO conectar ao emulador a menos que explicitamente configurado
+// connectFirestoreEmulator(db, 'localhost', 8080);
+
 export default app;

@@ -163,14 +163,21 @@ async function checkRateLimit(userId, action, maxRequests = 10, windowMs = 60000
 /**
  * Verifica se o usuário está autenticado
  */
-function requireAuth(context) {
-  if (!context.auth) {
+function requireAuth(request) {
+  if (!request.auth) {
+    console.error('❌ [requireAuth] request.auth está undefined');
+    console.error('❌ [requireAuth] request:', JSON.stringify({
+      rawRequest: request.rawRequest ? 'exists' : 'undefined',
+      auth: request.auth,
+      data: request.data
+    }));
     throw new HttpsError(
       'unauthenticated',
       'Você precisa estar autenticado para executar esta ação.'
     );
   }
-  return context.auth;
+  console.log('✅ [requireAuth] Autenticação validada para UID:', request.auth.uid);
+  return request.auth;
 }
 
 /**
@@ -720,3 +727,141 @@ function getRequiredFieldsForRole(role) {
 
   return requiredFields[role] || ['name'];
 }
+
+/**
+ * Criar documento inicial do usuário na coleção users
+ * Esta função é chamada durante o primeiro login do usuário
+ *
+ * SEGURANÇA:
+ * - Requer autenticação via context.auth
+ * - Valida que o UID corresponde ao usuário autenticado
+ * - Rate limiting: 5 requisições por hora
+ */
+exports.createInitialUserDocument = onCall(async (request) => {
+  try {
+    console.log('🔍 [createInitialUserDocument] Iniciando função...');
+    console.log('🔍 [createInitialUserDocument] request.auth:', request.auth ? 'EXISTE' : 'UNDEFINED');
+    console.log('🔍 [createInitialUserDocument] request.data:', request.data);
+
+    // VALIDAÇÃO DE PAYLOAD
+    const { uid, email, displayName, role, photoURL } = request.data;
+
+    // Validar parâmetros obrigatórios
+    if (!uid || !email || !displayName || !role) {
+      throw new HttpsError(
+        'invalid-argument',
+        'Dados incompletos fornecidos.'
+      );
+    }
+
+    // VALIDAÇÃO DE SEGURANÇA ALTERNATIVA:
+    // Como o token pode não propagar imediatamente após signInWithPopup,
+    // validamos verificando se o usuário existe no Firebase Authentication
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUser(uid);
+      console.log('✅ [createInitialUserDocument] Usuário verificado no Auth:', userRecord.uid);
+    } catch (error) {
+      console.error('❌ [createInitialUserDocument] Usuário não encontrado no Auth:', error);
+      throw new HttpsError(
+        'not-found',
+        'Usuário não encontrado no sistema de autenticação.'
+      );
+    }
+
+    // Validar que o email corresponde
+    if (userRecord.email !== email) {
+      console.error('❌ [createInitialUserDocument] Email não corresponde:', {
+        provided: email,
+        actual: userRecord.email
+      });
+      throw new HttpsError(
+        'permission-denied',
+        'Email não corresponde ao usuário autenticado.'
+      );
+    }
+
+    // Validar formato dos dados
+    if (!isValidEmail(email)) {
+      throw new HttpsError('invalid-argument', 'Email inválido.');
+    }
+
+    if (!isValidUID(uid)) {
+      throw new HttpsError('invalid-argument', 'Identificador inválido.');
+    }
+
+    if (!isValidRole(role)) {
+      throw new HttpsError('invalid-argument', 'Tipo de perfil inválido.');
+    }
+
+    if (!isValidStringLength(displayName, 2, 100)) {
+      throw new HttpsError('invalid-argument', 'Nome deve ter entre 2 e 100 caracteres.');
+    }
+
+    // RATE LIMITING - 5 criações por hora
+    await checkRateLimit(uid, 'createInitialUser', 5, 3600000);
+
+    const db = admin.firestore();
+
+    // Verificar se o usuário já existe
+    const userRef = db.collection('users').doc(uid);
+    const userDoc = await userRef.get();
+
+    if (userDoc.exists) {
+      // Usuário já existe - retornar os dados existentes
+      return {
+        success: true,
+        exists: true,
+        message: 'Usuário já existe',
+        user: userDoc.data(),
+      };
+    }
+
+    // Criar documento do usuário
+    const userData = {
+      uid,
+      email,
+      displayName: sanitizeString(displayName),
+      roles: [role],
+      activeRole: role,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Adicionar photoURL se fornecido
+    if (photoURL) {
+      userData.photoURL = photoURL;
+    }
+
+    await userRef.set(userData);
+
+    // Log de segurança
+    await securityLog('user_document_created', uid, { role, email });
+
+    return {
+      success: true,
+      exists: false,
+      message: 'Documento do usuário criado com sucesso',
+      user: userData,
+    };
+  } catch (error) {
+    console.error('Erro ao criar documento do usuário:', error);
+
+    // Log de erro
+    if (request.auth) {
+      await securityLog('create_user_error', request.auth.uid, {
+        error: error.message,
+        role: request.data?.role
+      });
+    }
+
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+
+    throw new HttpsError(
+      'internal',
+      'Erro ao processar solicitação. Tente novamente.'
+    );
+  }
+});

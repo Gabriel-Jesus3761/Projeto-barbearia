@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { validateUserLogin as validateLoginFunction } from './functionsService';
+import { validateUserLogin as validateLoginFunction, createInitialUserDocument as createInitialUserDocumentFunction } from './functionsService';
 
 export type UserRole = 'client' | 'professional' | 'owner';
 
@@ -32,6 +32,23 @@ export interface UserProfile {
   birthDate?: string;
   createdAt: any;
   updatedAt: any;
+  // Informações adicionais do Google/Facebook
+  firstName?: string; // Nome
+  lastName?: string; // Sobrenome
+  locale?: string; // Localidade/idioma (ex: pt-BR, en-US)
+  emailVerified?: boolean; // Email verificado
+  metadata?: {
+    creationTime?: string; // Data de criação da conta
+    lastSignInTime?: string; // Último login
+  };
+  providers?: Array<{
+    providerId: string; // google.com, facebook.com, etc
+    uid: string;
+    displayName: string | null;
+    email: string | null;
+    photoURL: string | null;
+    phoneNumber: string | null;
+  }>;
 }
 
 // Interface para dados específicos de profissional
@@ -63,42 +80,46 @@ export interface OwnerProfile {
 
 // Providers
 const googleProvider = new GoogleAuthProvider();
+// Adicionar escopos para obter mais informações do usuário
+googleProvider.addScope('profile');
+googleProvider.addScope('email');
+googleProvider.addScope('https://www.googleapis.com/auth/user.birthday.read');
+googleProvider.addScope('https://www.googleapis.com/auth/user.phonenumbers.read');
+googleProvider.addScope('https://www.googleapis.com/auth/user.gender.read');
+
 const facebookProvider = new FacebookAuthProvider();
+facebookProvider.addScope('email');
+facebookProvider.addScope('public_profile');
+facebookProvider.addScope('user_birthday');
+facebookProvider.addScope('user_gender');
 
 /**
  * Cria um perfil de usuário no Firestore (coleção users)
+ * SOLUÇÃO TEMPORÁRIA: Usando Cloud Function devido a problemas de conectividade com Firestore do cliente
  */
 async function createUserProfile(
   user: FirebaseUser,
   role: UserRole,
   additionalData?: any
 ): Promise<void> {
-  console.log('📝 [createUserProfile] Criando documento no Firestore para UID:', user.uid);
-  const userRef = doc(db, 'users', user.uid);
-
-  const userProfile: any = {
-    uid: user.uid,
-    email: user.email!,
-    displayName: user.displayName || user.email!.split('@')[0],
-    roles: [role], // Inicia com apenas 1 role
-    activeRole: role, // Role ativo é o inicial
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    ...additionalData
-  };
-
-  // Apenas adiciona photoURL se existir
-  if (user.photoURL) {
-    userProfile.photoURL = user.photoURL;
-  }
-
-  console.log('📝 [createUserProfile] Dados do perfil:', userProfile);
-
   try {
-    await setDoc(userRef, userProfile, { merge: true });
-    console.log('✅ [createUserProfile] Documento criado com sucesso!');
-  } catch (error) {
-    console.error('❌ [createUserProfile] Erro ao criar documento:', error);
+    const displayName = user.displayName || user.email!.split('@')[0];
+    const photoURL = additionalData?.photoURL || user.photoURL || undefined;
+
+    const result = await createInitialUserDocumentFunction(
+      user.uid,
+      user.email!,
+      displayName,
+      role,
+      photoURL,
+      user
+    );
+
+    if (!result.success) {
+      throw new Error(result.message || 'Erro ao criar documento do usuário');
+    }
+  } catch (error: any) {
+    console.error('[createUserProfile] Erro ao criar documento:', error.message);
     throw error;
   }
 }
@@ -372,20 +393,16 @@ export async function loginWithEmail(
     // Fallback: buscar perfil do Firestore (caso expectedRole não seja fornecido ou Cloud Function falhe)
     let profile = await getUserProfile(user.uid);
 
-    // Se o perfil não existir, cria um (caso de usuário criado externamente)
+    // Se o perfil não existir, retorna erro (usuário deve se registrar primeiro)
     if (!profile) {
-      await createUserProfile(user, expectedRole || 'client');
-      profile = await getUserProfile(user.uid);
+      console.error('❌ [loginWithEmail] Perfil não encontrado. Usuário deve se registrar primeiro.');
+      throw new Error('Usuário não encontrado. Por favor, faça seu cadastro primeiro.');
     }
 
-    if (!profile) throw new Error('Erro ao obter perfil do usuário');
-
-    // Se o usuário não possui o role esperado, adiciona automaticamente
+    // SEGURANÇA: Verificar se o usuário possui o role esperado
     if (expectedRole && !profile.roles.includes(expectedRole)) {
-      console.log(`📝 [loginWithEmail] Usuário não possui o role ${expectedRole}, adicionando...`);
-      await addRoleToUser(user.uid, expectedRole);
-      profile = await getUserProfile(user.uid);
-      if (!profile) throw new Error('Erro ao atualizar perfil do usuário');
+      console.error(`❌ [loginWithEmail] Usuário não possui o role ${expectedRole}`);
+      throw new Error(`Você não possui perfil de ${expectedRole}. Complete seu cadastro como ${expectedRole} primeiro.`);
     }
 
     // Se o usuário possui o role, mas não está ativo, alterna
@@ -403,41 +420,165 @@ export async function loginWithEmail(
 
 /**
  * Login com Google
+ * Implementa vinculação automática de credenciais para evitar contas duplicadas
  */
 export async function loginWithGoogle(role: UserRole = 'client'): Promise<UserProfile> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
 
+    // Extrair informações adicionais do credential (se disponível)
+    const additionalUserInfo: any = {};
+
+    // IMPORTANTE: A foto vem direto do user.photoURL (Firebase já processa)
+    if (user.photoURL) {
+      additionalUserInfo.photoURL = user.photoURL;
+    }
+
+    // O Google pode retornar informações adicionais no resultado
+    if ((result as any).additionalUserInfo?.profile) {
+      const googleProfile = (result as any).additionalUserInfo.profile;
+
+      // Capturar informações extras do Google
+      if (googleProfile.given_name) additionalUserInfo.firstName = googleProfile.given_name;
+      if (googleProfile.family_name) additionalUserInfo.lastName = googleProfile.family_name;
+      if (googleProfile.locale) additionalUserInfo.locale = googleProfile.locale;
+      // Foto de alta qualidade do Google (sobrescreve se disponível)
+      if (googleProfile.picture) additionalUserInfo.photoURL = googleProfile.picture;
+    }
+
     let profile = await getUserProfile(user.uid);
 
-    // Se é a primeira vez do usuário, cria o perfil
+    // REGRA DE NEGÓCIO:
+    // - Se é a PRIMEIRA VEZ do usuário (não tem perfil), cria com o role selecionado
+    // - Se JÁ TEM perfil, permite login em QUALQUER role (não restringe)
+    //   e oferece opção de adicionar novo role depois
     if (!profile) {
-      await createUserProfile(user, role);
+      // Primeira vez - cria o perfil com o role selecionado
+      await createUserProfile(user, role, additionalUserInfo);
+      profile = await getUserProfile(user.uid);
+    } else {
+      // Já tem perfil - permite login e atualiza informações
+      const userRef = doc(db, 'users', user.uid);
+      const updateData: any = {
+        ...additionalUserInfo,
+        updatedAt: serverTimestamp(),
+      };
+
+      await updateDoc(userRef, updateData);
+
+      // Se o usuário tem o role solicitado, alterna para ele
+      if (profile.roles.includes(role)) {
+        if (profile.activeRole !== role) {
+          await switchActiveRole(user.uid, role);
+        }
+      }
+
       profile = await getUserProfile(user.uid);
     }
 
-    if (!profile) throw new Error('Erro ao obter perfil do usuário');
+    if (!profile) {
+      throw new Error('Erro ao obter perfil do usuário');
+    }
 
     return profile;
   } catch (error: any) {
-    throw new Error(getAuthErrorMessage(error.code));
+    console.error('[loginWithGoogle] Erro:', error.message || error);
+
+    // Tratamento especial para conta existente com credencial diferente
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      throw new Error('Esta conta já existe com um método de login diferente. Use o método original ou entre em contato com o suporte.');
+    }
+
+    // Se já é um Error com mensagem, manter a mensagem original
+    if (error instanceof Error && error.message) {
+      throw error;
+    }
+
+    throw new Error(getAuthErrorMessage(error.code) || error.message || 'Erro ao autenticar com Google');
   }
 }
 
 /**
  * Login com Facebook
+ * Implementa vinculação automática de credenciais para evitar contas duplicadas
  */
 export async function loginWithFacebook(role: UserRole = 'client'): Promise<UserProfile> {
   try {
     const result = await signInWithPopup(auth, facebookProvider);
     const user = result.user;
 
+    console.log('📝 [loginWithFacebook] Usuário autenticado:', user.uid);
+    console.log('📊 [loginWithFacebook] Informações do Facebook:', {
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+      phoneNumber: user.phoneNumber,
+      emailVerified: user.emailVerified,
+      metadata: user.metadata,
+      providerData: user.providerData,
+    });
+
+    // Extrair informações adicionais do Facebook (se disponível)
+    const additionalUserInfo: any = {};
+
+    // IMPORTANTE: A foto vem direto do user.photoURL (Firebase já processa)
+    if (user.photoURL) {
+      additionalUserInfo.photoURL = user.photoURL;
+    }
+
+    // O Facebook pode retornar informações adicionais no resultado
+    if ((result as any).additionalUserInfo?.profile) {
+      const facebookProfile = (result as any).additionalUserInfo.profile;
+      console.log('📊 [loginWithFacebook] Perfil completo do Facebook:', facebookProfile);
+
+      // Capturar informações extras do Facebook
+      if (facebookProfile.first_name) additionalUserInfo.firstName = facebookProfile.first_name;
+      if (facebookProfile.last_name) additionalUserInfo.lastName = facebookProfile.last_name;
+      if (facebookProfile.gender) additionalUserInfo.gender = facebookProfile.gender;
+      if (facebookProfile.birthday) additionalUserInfo.birthDate = facebookProfile.birthday;
+      // Foto de alta qualidade do Facebook (sobrescreve se disponível)
+      if (facebookProfile.picture?.data?.url) additionalUserInfo.photoURL = facebookProfile.picture.data.url;
+      if (facebookProfile.locale) additionalUserInfo.locale = facebookProfile.locale;
+    }
+
+    console.log('📊 [loginWithFacebook] Informações adicionais capturadas:', additionalUserInfo);
+
     let profile = await getUserProfile(user.uid);
 
-    // Se é a primeira vez do usuário, cria o perfil
+    // REGRA DE NEGÓCIO:
+    // - Se é a PRIMEIRA VEZ do usuário (não tem perfil), cria com o role selecionado
+    // - Se JÁ TEM perfil, permite login em QUALQUER role (não restringe)
+    //   e oferece opção de adicionar novo role depois
     if (!profile) {
-      await createUserProfile(user, role);
+      // Primeira vez - cria o perfil com o role selecionado
+      console.log('📝 [loginWithFacebook] Primeiro acesso. Criando perfil com role:', role);
+      await createUserProfile(user, role, additionalUserInfo);
+      profile = await getUserProfile(user.uid);
+    } else {
+      // Já tem perfil - permite login e atualiza informações
+      console.log('📝 [loginWithFacebook] Usuário já possui perfil. Atualizando informações...');
+
+      // Atualiza informações adicionais (incluindo foto)
+      const userRef = doc(db, 'users', user.uid);
+      const updateData: any = {
+        ...additionalUserInfo,
+        updatedAt: serverTimestamp(),
+      };
+
+      console.log('📝 [loginWithFacebook] Dados a atualizar:', updateData);
+      await updateDoc(userRef, updateData);
+
+      // Se o usuário tem o role solicitado, alterna para ele
+      if (profile.roles.includes(role)) {
+        if (profile.activeRole !== role) {
+          await switchActiveRole(user.uid, role);
+        }
+      } else {
+        // Se não tem o role, mantém o role atual
+        console.log(`⚠️ [loginWithFacebook] Usuário não possui o role ${role}. Mantendo role atual: ${profile.activeRole}`);
+      }
+
       profile = await getUserProfile(user.uid);
     }
 
@@ -445,7 +586,18 @@ export async function loginWithFacebook(role: UserRole = 'client'): Promise<User
 
     return profile;
   } catch (error: any) {
-    throw new Error(getAuthErrorMessage(error.code));
+    console.error('❌ [loginWithFacebook] Erro:', error);
+
+    // Tratamento especial para conta existente com credencial diferente
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      console.log('📝 [loginWithFacebook] Conta existe com credencial diferente. Tentando vincular...');
+
+      // O Firebase já vinculou automaticamente na maioria dos casos modernos
+      // Se chegou aqui, é um caso raro que precisa ser tratado manualmente
+      throw new Error('Esta conta já existe com um método de login diferente. Use o método original ou entre em contato com o suporte.');
+    }
+
+    throw new Error(getAuthErrorMessage(error.code) || error.message);
   }
 }
 

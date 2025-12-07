@@ -2,9 +2,12 @@
  * Service para integração com Firebase Cloud Functions
  */
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import app from '@/lib/firebase';
+import app, { auth } from '@/lib/firebase';
 
 const functions = getFunctions(app, 'southamerica-east1'); // Região São Paulo
+
+// IMPORTANTE: Para desenvolvimento local, descomente a linha abaixo
+// connectFunctionsEmulator(functions, 'localhost', 5001);
 
 /**
  * Tipos
@@ -138,5 +141,62 @@ export async function linkProfessionalToBusiness(
   } catch (error: any) {
     console.error('Erro ao vincular profissional:', error);
     throw new Error(error.message || 'Erro ao vincular profissional');
+  }
+}
+
+/**
+ * Cria documento inicial do usuário na coleção users
+ * Chamada durante o primeiro login via Google/Facebook
+ */
+export async function createInitialUserDocument(
+  uid: string,
+  email: string,
+  displayName: string,
+  role: 'client' | 'professional' | 'owner',
+  photoURL?: string,
+  userFromSignIn?: any // Objeto user retornado do signInWithPopup
+): Promise<{ success: boolean; exists: boolean; message: string; user: any }> {
+  try {
+    // Usar o user fornecido ou pegar do auth.currentUser
+    const currentUser = userFromSignIn || auth.currentUser;
+
+    if (!currentUser) {
+      throw new Error('Usuário não está autenticado');
+    }
+
+    // Obter o token de autenticação explicitamente e aguardar propagação
+    await currentUser.getIdToken(true); // Force refresh
+
+    // Aguardar 500ms para o token propagar no sistema do Firebase
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const createInitialUser = httpsCallable(
+      functions,
+      'createInitialUserDocument'
+    );
+
+    // Tentar até 3 vezes com delay crescente
+    let lastError: any = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const result = await createInitialUser({ uid, email, displayName, role, photoURL });
+        return result.data as any;
+      } catch (error: any) {
+        lastError = error;
+        if (error.code === 'functions/unauthenticated' && attempt < 3) {
+          const delay = attempt * 1000; // 1s, 2s
+          // Forçar refresh do token novamente
+          await currentUser.getIdToken(true);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    throw lastError;
+  } catch (error: any) {
+    console.error('[createInitialUserDocument] Erro ao criar documento:', error.message);
+    throw new Error(error.message || 'Erro ao criar documento do usuário');
   }
 }

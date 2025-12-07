@@ -51,8 +51,7 @@ service cloud.firestore {
     function hasValidRoles(roles) {
       return roles is list
         && roles.size() > 0
-        && roles.size() <= 3
-        && roles.hasAll(['client', 'professional', 'owner'].hasAny(roles));
+        && roles.size() <= 3;
     }
 
     // Valida URL (básico)
@@ -69,54 +68,28 @@ service cloud.firestore {
     // COLEÇÃO: USERS
     // ============================================
     match /users/{userId} {
-      // Leitura: apenas o próprio usuário
-      allow read: if isOwner(userId);
+      // Leitura: apenas o próprio usuário ou usuários autenticados (para listagens públicas)
+      allow read: if isAuthenticated();
 
-      // Criação: apenas durante registro (próprio UID)
-      allow create: if isOwner(userId)
-        && request.resource.data.keys().hasAll(['uid', 'email', 'displayName', 'roles', 'activeRole', 'createdAt', 'updatedAt'])
-        && request.resource.data.uid == userId
-        && isValidEmail(request.resource.data.email)
-        && isValidStringLength(request.resource.data.displayName, 2, 100)
-        && hasValidRoles(request.resource.data.roles)
-        && isValidRole(request.resource.data.activeRole)
-        && request.resource.data.activeRole in request.resource.data.roles
-        && isValidTimestamp(request.resource.data.createdAt)
+      // Criação: APENAS via Cloud Function (admin)
+      // O cliente NÃO pode criar documentos diretamente
+      allow create: if false;
+
+      // Atualização: apenas o próprio usuário (campos limitados)
+      allow update: if isOwner(userId)
+        && request.resource.data.uid == resource.data.uid  // uid imutável
+        && request.resource.data.email == resource.data.email  // email imutável
+        && request.resource.data.createdAt == resource.data.createdAt  // createdAt imutável
         && isValidTimestamp(request.resource.data.updatedAt)
-        // Validações opcionais
-        && (!request.resource.data.keys().hasAny(['cpf']) || isValidCPF(request.resource.data.cpf))
+        // Validações de campos opcionais
+        && (!request.resource.data.keys().hasAny(['displayName']) || isValidStringLength(request.resource.data.displayName, 2, 100))
         && (!request.resource.data.keys().hasAny(['phone']) || isValidPhone(request.resource.data.phone))
         && (!request.resource.data.keys().hasAny(['photoURL']) || isValidURL(request.resource.data.photoURL))
         && (!request.resource.data.keys().hasAny(['coverPhotoURL']) || isValidURL(request.resource.data.coverPhotoURL))
-        && (!request.resource.data.keys().hasAny(['gender']) || request.resource.data.gender in ['masculino', 'feminino', 'outro'])
-        && (!request.resource.data.keys().hasAny(['birthDate']) || isValidStringLength(request.resource.data.birthDate, 8, 10));
+        && request.resource.data.roles == resource.data.roles  // roles imutável (apenas admin pode alterar)
+        && hasValidRoles(request.resource.data.roles);
 
-      // Atualização: apenas o próprio usuário
-      // Campos sensíveis NÃO podem ser editados diretamente pelo cliente
-      allow update: if isOwner(userId)
-        && request.resource.data.uid == resource.data.uid  // UID imutável
-        && request.resource.data.email == resource.data.email  // Email imutável (use Cloud Function para alterar)
-        && request.resource.data.createdAt == resource.data.createdAt  // createdAt imutável
-        && isValidTimestamp(request.resource.data.updatedAt)
-        // Validações de campos editáveis
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['displayName'])
-            || isValidStringLength(request.resource.data.displayName, 2, 100))
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['roles'])
-            || hasValidRoles(request.resource.data.roles))
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeRole'])
-            || (isValidRole(request.resource.data.activeRole) && request.resource.data.activeRole in request.resource.data.roles))
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone'])
-            || isValidPhone(request.resource.data.phone))
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['photoURL'])
-            || isValidURL(request.resource.data.photoURL))
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['coverPhotoURL'])
-            || isValidURL(request.resource.data.coverPhotoURL))
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['gender'])
-            || request.resource.data.gender in ['masculino', 'feminino', 'outro'])
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['birthDate'])
-            || isValidStringLength(request.resource.data.birthDate, 8, 10));
-
-      // Deleção: não permitida (use Cloud Function)
+      // Deleção: não permitida (usar Cloud Function para soft-delete)
       allow delete: if false;
     }
 
