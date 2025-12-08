@@ -455,8 +455,8 @@ export async function loginWithGoogle(role: UserRole = 'client'): Promise<UserPr
         }
 
         // O Google pode retornar informações adicionais no resultado
-        if (result.additionalUserInfo?.profile) {
-          const googleProfile = result.additionalUserInfo.profile;
+        if ((result as any).additionalUserInfo?.profile) {
+          const googleProfile = (result as any).additionalUserInfo.profile;
 
           // Capturar informações extras do Google
           if (googleProfile.given_name) additionalUserInfo.firstName = googleProfile.given_name;
