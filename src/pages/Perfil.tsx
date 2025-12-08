@@ -2,13 +2,14 @@ import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { Camera, ArrowLeft, Mail, User as UserIcon, Phone, Save, X, CreditCard, Calendar, Users, Image } from 'lucide-react'
+import { Camera, ArrowLeft, Mail, User as UserIcon, Phone, Save, X, CreditCard, Calendar, Users, Image, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageCropModal } from '@/components/ImageCropModal'
 import { uploadProfilePhoto, uploadCoverPhoto } from '@/services/storageService'
 import { updateUserProfilePhoto, updateUserCoverPhoto, updateUserProfile, getUserProfile } from '@/services/authService'
+import { getProfileCompletenessInfo } from '@/utils/profileValidation'
 
 export function Perfil() {
   const { user } = useAuth()
@@ -197,6 +198,7 @@ export function Perfil() {
 
   const displayAvatar = previewAvatar || user.avatar
   const displayCover = previewCover || user.coverPhoto
+  const completenessInfo = getProfileCompletenessInfo(user as any)
 
   return (
     <div className="min-h-screen bg-black">
@@ -250,6 +252,62 @@ export function Perfil() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Profile Incomplete Warning */}
+        {!completenessInfo.isComplete && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-500/20 rounded-2xl p-6 backdrop-blur-xl"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-6 h-6 text-amber-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white mb-2">Complete seu perfil</h3>
+                <p className="text-sm text-gray-300 mb-4">
+                  Seu perfil está {completenessInfo.completeness}% completo. Complete as informações abaixo para desbloquear todas as funcionalidades da plataforma.
+                </p>
+
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${completenessInfo.completeness}%` }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                      className="h-full bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    {completenessInfo.totalFilled} de {completenessInfo.totalRequired} campos preenchidos
+                  </p>
+                </div>
+
+                {/* Missing Fields */}
+                <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-4 mb-4">
+                  <p className="text-sm font-medium text-amber-400 mb-2">Campos necessários:</p>
+                  <ul className="space-y-1">
+                    {completenessInfo.missingFieldsLabels.map((label, index) => (
+                      <li key={index} className="text-sm text-amber-300/90 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                        {label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <Button
+                  onClick={() => navigate('/profile/complete')}
+                  className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:opacity-90 text-white"
+                >
+                  Completar agora
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <div className="bg-gradient-to-br from-gray-900/90 via-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden">
           {/* Cover Photo Section */}
           <div className="relative h-48 bg-gradient-to-r from-gold/20 to-purple-500/20 group">

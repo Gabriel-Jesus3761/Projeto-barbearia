@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { MobileHeader } from './MobileHeader'
 import { DesktopHeader } from './DesktopHeader'
-import { ProfileCompleteBanner } from '../ProfileCompleteBanner'
 import { CompleteProfileModal } from '../CompleteProfileModal'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -40,11 +39,6 @@ export function AppLayout() {
 
       {/* Desktop Header */}
       <DesktopHeader />
-
-      {/* Profile Complete Banner - Mostra em todas as páginas se perfil incompleto */}
-      {isAuthenticated && user && !user.profileComplete && location.pathname !== '/profile/complete' && (
-        <ProfileCompleteBanner />
-      )}
 
       {/* Page Content */}
       <div className="pt-24">
