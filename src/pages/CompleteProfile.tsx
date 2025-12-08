@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db } from '../lib/firebase';
 import {
   UserIcon,
   PhoneIcon,
   CakeIcon,
-  IdentificationCardIcon,
+  IdentificationIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
-import { getProfileCompletenessInfo, FIELD_LABELS } from '../utils/profileValidation';
+import { getProfileCompletenessInfo } from '../utils/profileValidation';
 
 export function CompleteProfile() {
   const { user } = useAuth();
@@ -28,7 +28,7 @@ export function CompleteProfile() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const completenessInfo = user ? getProfileCompletenessInfo(user) : null;
+  const completenessInfo = user ? getProfileCompletenessInfo(user as any) : null;
 
   useEffect(() => {
     if (user) {
@@ -278,7 +278,7 @@ export function CompleteProfile() {
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <IdentificationCardIcon className="h-5 w-5 text-gray-400" />
+                  <IdentificationIcon className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   type="text"
