@@ -8,21 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { DateRangePicker } from '@/components/DateRangePicker'
 import { mockAppointments } from '@/data/mockData'
 import { formatCurrency, formatDate } from '@/lib/utils'
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-}
+import { theme, cardClasses, iconClasses, pageClasses } from '@/styles/theme'
 
 type DateRange = { from?: Date; to?: Date }
 
@@ -185,14 +171,14 @@ export function DashboardClientes() {
   }, [activeClientsInPeriod, newClients, clientStats, filteredAppointments, inactiveClients])
 
   return (
-    <div>
+    <div className={pageClasses.container()}>
       <Header
         title="Dashboard de Clientes"
         subtitle="Análise de comportamento e estatísticas dos clientes"
         onMobileMenuClick={() => setIsMobileMenuOpen(true)}
       />
 
-      <div className="p-4 md:p-8">
+      <div className={pageClasses.content()}>
         {/* Filtros */}
         <div className="mb-6 flex flex-col sm:flex-row gap-3">
           <DateRangePicker
@@ -204,99 +190,83 @@ export function DashboardClientes() {
 
         {/* Cards de Estatísticas Gerais */}
         <motion.div
-          variants={container}
+          variants={theme.animations.container}
           initial="hidden"
           animate="show"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('blue')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Clientes Ativos
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {totalStats.activeInPeriod}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Total: {totalStats.totalClients} clientes
-                    </p>
-                  </div>
-                  <div className="bg-blue-500 p-3 rounded-lg">
-                    <Users className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('blue')}>
+                  <Users className={iconClasses.icon('blue')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Clientes Ativos
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {totalStats.activeInPeriod}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  Total: {totalStats.totalClients} clientes
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('green')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Novos Clientes
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {totalStats.newClients}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      No período selecionado
-                    </p>
-                  </div>
-                  <div className="bg-green-500 p-3 rounded-lg">
-                    <UserPlus className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('green')}>
+                  <UserPlus className={iconClasses.icon('green')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Novos Clientes
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {totalStats.newClients}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  No período selecionado
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('gold')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Receita no Período
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {formatCurrency(totalStats.revenue)}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Média: {formatCurrency(totalStats.avgSpent)}/cliente
-                    </p>
-                  </div>
-                  <div className="bg-gold p-3 rounded-lg">
-                    <DollarSign className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('gold')}>
+                  <DollarSign className={iconClasses.icon('gold')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Receita no Período
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {formatCurrency(totalStats.revenue)}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  Média: {formatCurrency(totalStats.avgSpent)}/cliente
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('purple')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Média Agend./Cliente
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {totalStats.avgAppointmentsPerClient.toFixed(1)}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      No período selecionado
-                    </p>
-                  </div>
-                  <div className="bg-purple-500 p-3 rounded-lg">
-                    <Calendar className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('purple')}>
+                  <Calendar className={iconClasses.icon('purple')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Média Agend./Cliente
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {totalStats.avgAppointmentsPerClient.toFixed(1)}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  No período selecionado
+                </p>
               </CardContent>
             </Card>
           </motion.div>
@@ -309,41 +279,41 @@ export function DashboardClientes() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2">
+            <Card className={theme.colors.card.base}>
+              <CardHeader className={`border-b ${theme.colors.border.light}`}>
+                <CardTitle className={`flex items-center gap-2 ${theme.colors.text.primary}`}>
                   <Award className="w-5 h-5 text-gold" />
                   Top Clientes (Receita Total)
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="divide-y divide-gray-100">
+                <div className={`divide-y ${theme.colors.border.light}`}>
                   {topClients.map((client, index) => (
                     <div
                       key={client.name}
-                      className="p-6 hover:bg-gray-50 transition-colors"
+                      className="p-6 hover:bg-white/5 transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex gap-4 items-center flex-1">
                           <div className={`
                             w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg
-                            ${index === 0 ? 'bg-gold text-white' : ''}
-                            ${index === 1 ? 'bg-gray-300 text-gray-700' : ''}
+                            ${index === 0 ? 'bg-gold text-black' : ''}
+                            ${index === 1 ? 'bg-gray-700 text-white' : ''}
                             ${index === 2 ? 'bg-amber-600 text-white' : ''}
-                            ${index > 2 ? 'bg-gray-100 text-gray-600' : ''}
+                            ${index > 2 ? 'bg-white/10 text-gray-400' : ''}
                           `}>
                             {index + 1}
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">
+                            <h4 className={`font-semibold ${theme.colors.text.primary} mb-1`}>
                               {client.name}
                             </h4>
                             <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-xs border-white/20 text-gray-400">
                                 {client.favoriteService}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                            <div className={`flex items-center gap-3 text-sm ${theme.colors.text.tertiary}`}>
                               <span>
                                 {client.completedCount} visitas
                               </span>
@@ -354,10 +324,10 @@ export function DashboardClientes() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold text-gray-900">
+                          <p className={`text-xl font-bold ${theme.colors.text.primary}`}>
                             {formatCurrency(client.totalRevenue)}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                             Última visita: {formatDate(client.lastVisit)}
                           </p>
                         </div>
@@ -375,35 +345,35 @@ export function DashboardClientes() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2">
+            <Card className={theme.colors.card.base}>
+              <CardHeader className={`border-b ${theme.colors.border.light}`}>
+                <CardTitle className={`flex items-center gap-2 ${theme.colors.text.primary}`}>
                   <UserPlus className="w-5 h-5 text-gold" />
                   Novos Clientes no Período
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 {newClients.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
+                  <div className={`divide-y ${theme.colors.border.light}`}>
                     {newClients.slice(0, 10).map((client) => (
                       <div
                         key={client.name}
-                        className="p-6 hover:bg-gray-50 transition-colors"
+                        className="p-6 hover:bg-white/5 transition-colors"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">
+                            <h4 className={`font-semibold ${theme.colors.text.primary} mb-1`}>
                               {client.name}
                             </h4>
                             <div className="flex items-center gap-2 mb-2">
                               <Badge variant="default" className="bg-green-500 text-xs">
                                 Novo
                               </Badge>
-                              <span className="text-xs text-gray-500">
+                              <span className={`text-xs ${theme.colors.text.tertiary}`}>
                                 Primeira visita: {formatDate(client.firstVisit)}
                               </span>
                             </div>
-                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                            <div className={`flex items-center gap-3 text-sm ${theme.colors.text.tertiary}`}>
                               <span>
                                 {client.appointmentsCount} agendamentos
                               </span>
@@ -413,7 +383,7 @@ export function DashboardClientes() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-gray-900">
+                            <p className={`text-lg font-bold ${theme.colors.text.primary}`}>
                               {formatCurrency(client.totalRevenue)}
                             </p>
                           </div>
@@ -422,7 +392,7 @@ export function DashboardClientes() {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-8 text-center text-gray-500">
+                  <div className={`p-8 text-center ${theme.colors.text.tertiary}`}>
                     Nenhum cliente novo no período selecionado
                   </div>
                 )}
@@ -437,10 +407,10 @@ export function DashboardClientes() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card>
-            <CardHeader className="border-b border-gray-100">
+          <Card className={theme.colors.card.base}>
+            <CardHeader className={`border-b ${theme.colors.border.light}`}>
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className={`flex items-center gap-2 ${theme.colors.text.primary}`}>
                   <TrendingUp className="w-5 h-5 text-red-500" />
                   Clientes Inativos (Última visita há mais de 30 dias)
                 </CardTitle>
@@ -452,54 +422,54 @@ export function DashboardClientes() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className={theme.components.table.header}>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Cliente
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Última Visita
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Total de Visitas
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Receita Total
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Serviço Favorito
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className={theme.components.table.body}>
                     {inactiveClients.map((client) => {
                       const daysSinceLastVisit = Math.floor(
                         (today.getTime() - client.lastVisit.getTime()) / (1000 * 60 * 60 * 24)
                       )
 
                       return (
-                        <tr key={client.name} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium text-gray-900">{client.name}</div>
+                        <tr key={client.name} className={theme.components.table.row}>
+                          <td className={theme.components.table.cell}>
+                            <div className={`font-medium ${theme.colors.text.primary}`}>{client.name}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
+                          <td className={theme.components.table.cell}>
+                            <div className={`text-sm ${theme.colors.text.primary}`}>
                               {formatDate(client.lastVisit)}
                             </div>
                             <div className="text-xs text-red-500">
                               Há {daysSinceLastVisit} dias
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="font-semibold">{client.completedCount}</span>
+                          <td className={theme.components.table.cell}>
+                            <span className={`font-semibold ${theme.colors.text.primary}`}>{client.completedCount}</span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="font-bold text-gray-900">
+                          <td className={theme.components.table.cell}>
+                            <span className={`font-bold ${theme.colors.text.primary}`}>
                               {formatCurrency(client.totalRevenue)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Badge variant="outline">
+                          <td className={theme.components.table.cell}>
+                            <Badge variant="outline" className="border-white/20 text-gray-400">
                               {client.favoriteService}
                             </Badge>
                           </td>

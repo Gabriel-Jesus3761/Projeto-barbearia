@@ -15,21 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { mockAppointments, mockExpenses } from "@/data/mockData";
 import { formatCurrency, formatDate } from "@/lib/utils";
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
-};
+import { theme, cardClasses, iconClasses, pageClasses } from "@/styles/theme";
 
 type DateRange = { from?: Date; to?: Date };
 
@@ -225,14 +211,14 @@ export default function DashboardFinanceiro() {
   };
 
   return (
-    <div>
+    <div className={pageClasses.container()}>
       <Header
         title="Dashboard Financeiro"
         subtitle="Controle de entrada, saída e lucro da empresa"
         onMobileMenuClick={() => setIsMobileMenuOpen(true)}
       />
 
-      <div className="p-4 md:p-8">
+      <div className={pageClasses.content()}>
         {/* Filtros */}
         <div className="mb-6 flex flex-col sm:flex-row gap-3">
           <DateRangePicker
@@ -244,115 +230,105 @@ export default function DashboardFinanceiro() {
 
         {/* Cards de Estatísticas Principais */}
         <motion.div
-          variants={container}
+          variants={theme.animations.container}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          className={pageClasses.statsGrid()}
         >
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-green-500">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('green')}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
                       Receita Total
                     </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
                       {formatCurrency(financialStats.totalRevenue)}
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-xs ${theme.colors.text.tertiary}`}>
                       {periodRevenues.length} transações
                     </p>
                   </div>
-                  <div className="bg-green-500 p-3 rounded-lg">
-                    <TrendingUp className="w-6 h-6 text-white" />
+                  <div className={iconClasses.container('green')}>
+                    <TrendingUp className={iconClasses.icon('green')} />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-red-500">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('red')}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
                       Despesas Pagas
                     </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
                       {formatCurrency(financialStats.totalExpenses)}
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-xs ${theme.colors.text.tertiary}`}>
                       {periodExpenses.filter((e) => e.isPaid).length} pagamentos
                       realizados
                     </p>
                   </div>
-                  <div className="bg-red-500 p-3 rounded-lg">
-                    <TrendingDown className="w-6 h-6 text-white" />
+                  <div className={iconClasses.container('red')}>
+                    <TrendingDown className={iconClasses.icon('red')} />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card
-              className={`hover:shadow-lg transition-shadow duration-200 border-l-4 ${
-                financialStats.profit >= 0
-                  ? "border-l-gold"
-                  : "border-l-orange-500"
-              }`}
-            >
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.container('goldGradient')}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
                       Lucro Líquido
                     </p>
                     <h3
                       className={`text-3xl font-bold mb-2 ${
                         financialStats.profit >= 0
-                          ? "text-green-600"
-                          : "text-red-600"
+                          ? theme.colors.status.success
+                          : theme.colors.status.error
                       }`}
                     >
                       {formatCurrency(financialStats.profit)}
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-xs ${theme.colors.text.tertiary}`}>
                       Margem: {financialStats.profitMargin.toFixed(1)}%
                     </p>
                   </div>
-                  <div
-                    className={`p-3 rounded-lg ${
-                      financialStats.profit >= 0 ? "bg-gold" : "bg-orange-500"
-                    }`}
-                  >
-                    <Wallet className="w-6 h-6 text-white" />
+                  <div className={iconClasses.container('gold')}>
+                    <Wallet className={iconClasses.icon('gold')} />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-yellow-500">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('yellow')}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
                       Despesas Pendentes
                     </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
                       {formatCurrency(financialStats.pendingExpenses)}
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-xs ${theme.colors.text.tertiary}`}>
                       {periodExpenses.filter((e) => !e.isPaid).length}{" "}
                       pagamentos pendentes
                     </p>
                   </div>
-                  <div className="bg-yellow-500 p-3 rounded-lg">
-                    <AlertCircle className="w-6 h-6 text-white" />
+                  <div className={iconClasses.container('yellow')}>
+                    <AlertCircle className={iconClasses.icon('yellow')} />
                   </div>
                 </div>
               </CardContent>
@@ -360,17 +336,17 @@ export default function DashboardFinanceiro() {
           </motion.div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className={pageClasses.grid2()}>
           {/* Despesas por Categoria */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="w-5 h-5 text-gold" />
+            <Card className={cardClasses.container('base')}>
+              <CardHeader className={theme.components.cardHeader}>
+                <CardTitle className={`flex items-center gap-2 ${theme.components.cardTitle}`}>
+                  <PieChart className={`w-5 h-5 ${theme.colors.icon.gold}`} />
                   Despesas por Categoria
                 </CardTitle>
               </CardHeader>
@@ -391,20 +367,20 @@ export default function DashboardFinanceiro() {
                                 cat.category
                               )}`}
                             />
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className={`text-sm font-medium ${theme.colors.text.secondary}`}>
                               {getCategoryLabel(cat.category)}
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className="text-sm font-bold text-gray-900">
+                            <span className={`text-sm font-bold ${theme.colors.text.primary}`}>
                               {formatCurrency(cat.total)}
                             </span>
-                            <span className="text-xs text-gray-500 ml-2">
+                            <span className={`text-xs ${theme.colors.text.tertiary} ml-2`}>
                               ({percentage.toFixed(1)}%)
                             </span>
                           </div>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-white/10 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full ${getCategoryColor(
                               cat.category
@@ -412,7 +388,7 @@ export default function DashboardFinanceiro() {
                             style={{ width: `${percentage}%` }}
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                           {cat.count}{" "}
                           {cat.count === 1 ? "transação" : "transações"}
                         </p>
@@ -420,7 +396,7 @@ export default function DashboardFinanceiro() {
                     );
                   })}
                   {expensesByCategory.length === 0 && (
-                    <p className="text-center text-gray-500 text-sm py-4">
+                    <p className={`text-center ${theme.colors.text.secondary} text-sm py-4`}>
                       Nenhuma despesa no período selecionado
                     </p>
                   )}
@@ -435,10 +411,10 @@ export default function DashboardFinanceiro() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-gold" />
+            <Card className={cardClasses.container('base')}>
+              <CardHeader className={theme.components.cardHeader}>
+                <CardTitle className={`flex items-center gap-2 ${theme.components.cardTitle}`}>
+                  <CreditCard className={`w-5 h-5 ${theme.colors.icon.gold}`} />
                   Receitas por Forma de Pagamento
                 </CardTitle>
               </CardHeader>
@@ -453,25 +429,25 @@ export default function DashboardFinanceiro() {
                     return (
                       <div key={method.method}>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">
+                          <span className={`text-sm font-medium ${theme.colors.text.secondary}`}>
                             {getPaymentMethodLabel(method.method)}
                           </span>
                           <div className="text-right">
-                            <span className="text-sm font-bold text-gray-900">
+                            <span className={`text-sm font-bold ${theme.colors.text.primary}`}>
                               {formatCurrency(method.total)}
                             </span>
-                            <span className="text-xs text-gray-500 ml-2">
+                            <span className={`text-xs ${theme.colors.text.tertiary} ml-2`}>
                               ({percentage.toFixed(1)}%)
                             </span>
                           </div>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-white/10 rounded-full h-2">
                           <div
                             className="h-2 rounded-full bg-gold"
                             style={{ width: `${percentage}%` }}
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                           {method.count}{" "}
                           {method.count === 1 ? "transação" : "transações"}
                         </p>
@@ -479,7 +455,7 @@ export default function DashboardFinanceiro() {
                     );
                   })}
                   {revenuesByPaymentMethod.length === 0 && (
-                    <p className="text-center text-gray-500 text-sm py-4">
+                    <p className={`text-center ${theme.colors.text.secondary} text-sm py-4`}>
                       Nenhuma receita no período selecionado
                     </p>
                   )}
@@ -495,44 +471,44 @@ export default function DashboardFinanceiro() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card>
-            <CardHeader className="border-b border-gray-100">
-              <CardTitle>Últimas Transações</CardTitle>
+          <Card className={cardClasses.container('base')}>
+            <CardHeader className={theme.components.cardHeader}>
+              <CardTitle className={theme.components.cardTitle}>Últimas Transações</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className={theme.components.table.header}>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Data
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Tipo
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Descrição
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Forma de Pagamento
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Valor
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className={theme.components.table.body}>
                     {recentTransactions.map((transaction) => (
                       <tr
                         key={`${transaction.type}-${transaction.id}`}
-                        className="hover:bg-gray-50"
+                        className={theme.components.table.row}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-900">
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
+                          <span className={`text-sm ${theme.colors.text.primary}`}>
                             {formatDate(transaction.date)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
                           <Badge
                             variant={
                               transaction.type === "revenue"
@@ -545,8 +521,8 @@ export default function DashboardFinanceiro() {
                               : "Despesa"}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-900">
+                        <td className={theme.components.table.cell}>
+                          <span className={`text-sm ${theme.colors.text.primary}`}>
                             {transaction.description}
                           </span>
                           {"isPaid" in transaction && !transaction.isPaid && (
@@ -555,21 +531,21 @@ export default function DashboardFinanceiro() {
                             </Badge>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
                           {transaction.paymentMethod ? (
-                            <span className="text-sm text-gray-500">
+                            <span className={`text-sm ${theme.colors.text.secondary}`}>
                               {getPaymentMethodLabel(transaction.paymentMethod)}
                             </span>
                           ) : (
-                            <span className="text-sm text-gray-400">-</span>
+                            <span className={`text-sm ${theme.colors.text.tertiary}`}>-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
                           <span
                             className={`text-sm font-bold ${
                               transaction.type === "revenue"
-                                ? "text-green-600"
-                                : "text-red-600"
+                                ? theme.colors.status.success
+                                : theme.colors.status.error
                             }`}
                           >
                             {transaction.type === "revenue" ? "+" : "-"}{" "}
@@ -593,9 +569,9 @@ export default function DashboardFinanceiro() {
             transition={{ delay: 0.7 }}
             className="mt-8"
           >
-            <Card className="border-yellow-500 border-2">
-              <CardHeader className="border-b border-yellow-100 bg-yellow-50">
-                <CardTitle className="flex items-center gap-2 text-yellow-800">
+            <Card className={cardClasses.statCard('yellow')}>
+              <CardHeader className="border-b border-yellow-500/20 bg-yellow-500/10">
+                <CardTitle className={`flex items-center gap-2 ${theme.colors.status.warning}`}>
                   <AlertCircle className="w-5 h-5" />
                   Despesas Pendentes de Pagamento
                 </CardTitle>
@@ -603,35 +579,35 @@ export default function DashboardFinanceiro() {
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className={theme.components.table.header}>
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className={theme.components.table.headerCell}>
                           Vencimento
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className={theme.components.table.headerCell}>
                           Descrição
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className={theme.components.table.headerCell}>
                           Categoria
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className={theme.components.table.headerCell}>
                           Valor
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className={theme.components.table.body}>
                       {periodExpenses
                         .filter((e) => !e.isPaid)
                         .map((expense) => (
-                          <tr key={expense.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm text-gray-900">
+                          <tr key={expense.id} className={theme.components.table.row}>
+                            <td className={`${theme.components.table.cell} whitespace-nowrap`}>
+                              <span className={`text-sm ${theme.colors.text.primary}`}>
                                 {formatDate(expense.date)}
                               </span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className={theme.components.table.cell}>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-900">
+                                <span className={`text-sm ${theme.colors.text.primary}`}>
                                   {expense.description}
                                 </span>
                                 {expense.recurring && (
@@ -641,13 +617,13 @@ export default function DashboardFinanceiro() {
                                 )}
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className={`${theme.components.table.cell} whitespace-nowrap`}>
                               <Badge variant="outline">
                                 {getCategoryLabel(expense.category)}
                               </Badge>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm font-bold text-gray-900">
+                            <td className={`${theme.components.table.cell} whitespace-nowrap`}>
+                              <span className={`text-sm font-bold ${theme.colors.text.primary}`}>
                                 {formatCurrency(expense.amount)}
                               </span>
                             </td>

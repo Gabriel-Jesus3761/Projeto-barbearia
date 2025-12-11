@@ -29,11 +29,14 @@ import { Perfil } from './pages/Perfil'
 import { CompleteProfile } from './pages/CompleteProfile'
 import { ConfiguracoesEstabelecimento } from './pages/ConfiguracoesEstabelecimento'
 import { EntradaDespesas } from './pages/EntradaDespesas'
+import { CadastrarEstabelecimento } from './pages/CadastrarEstabelecimento'
+import { Toaster } from './components/ui/toaster'
 
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <Toaster />
         <Routes>
           {/* Rotas de Autenticação (SEM header) */}
           <Route path="/login" element={<Login />} />
@@ -96,6 +99,16 @@ function App() {
             }
           />
 
+          {/* Rota de Cadastro de Estabelecimento (Proprietário) */}
+          <Route
+            path="/cadastrar-estabelecimento"
+            element={
+              <ProtectedRoute allowedRoles={['owner']}>
+                <CadastrarEstabelecimento />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Rota de Configurações (sem Layout) */}
           <Route
             path="/configuracoes"
@@ -122,6 +135,7 @@ function App() {
             <Route path="servicos" element={<DashboardServicos />} />
             <Route path="clientes" element={<DashboardClientes />} />
             <Route path="agendamentos" element={<DashboardAgendamentos />} />
+            <Route path="configuracoes" element={<ConfiguracoesEstabelecimento />} />
           </Route>
 
           {/* Rotas antigas de gerenciamento (agora dentro do dashboard) */}

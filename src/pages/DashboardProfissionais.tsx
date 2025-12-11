@@ -8,21 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { DateRangePicker } from '@/components/DateRangePicker'
 import { mockAppointments, mockProfessionals } from '@/data/mockData'
 import { formatCurrency } from '@/lib/utils'
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-}
+import { theme, cardClasses, iconClasses, pageClasses } from '@/styles/theme'
 
 type DateRange = { from?: Date; to?: Date }
 
@@ -153,14 +139,14 @@ export function DashboardProfissionais() {
   }, [professionalStats])
 
   return (
-    <div>
+    <div className={pageClasses.container()}>
       <Header
         title="Dashboard de Profissionais"
         subtitle="Análise de desempenho e estatísticas dos profissionais"
         onMobileMenuClick={() => setIsMobileMenuOpen(true)}
       />
 
-      <div className="p-4 md:p-8">
+      <div className={pageClasses.content()}>
         {/* Filtros */}
         <div className="mb-6 flex flex-col sm:flex-row gap-3">
           <DateRangePicker
@@ -172,43 +158,43 @@ export function DashboardProfissionais() {
 
         {/* Cards de Estatísticas Gerais */}
         <motion.div
-          variants={container}
+          variants={theme.animations.container}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          className={pageClasses.statsGrid()}
         >
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('green')}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
                       Receita Total
                     </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
                       {formatCurrency(totalStats.revenue)}
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-xs ${theme.colors.text.tertiary}`}>
                       {totalStats.completed} atendimentos
                     </p>
                   </div>
-                  <div className="bg-green-500 p-3 rounded-lg">
-                    <DollarSign className="w-6 h-6 text-white" />
+                  <div className={iconClasses.container('green')}>
+                    <DollarSign className={iconClasses.icon('green')} />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('yellow')}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
                       Avaliação Média
                     </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
                       {totalStats.avgRating.toFixed(1)}
                     </h3>
                     <div className="flex items-center gap-1">
@@ -218,60 +204,60 @@ export function DashboardProfissionais() {
                           className={`w-4 h-4 ${
                             i < Math.floor(totalStats.avgRating)
                               ? 'text-gold fill-gold'
-                              : 'text-gray-300'
+                              : 'text-gray-600'
                           }`}
                         />
                       ))}
                     </div>
                   </div>
-                  <div className="bg-gold p-3 rounded-lg">
-                    <Award className="w-6 h-6 text-white" />
+                  <div className={iconClasses.container('gold')}>
+                    <Award className={iconClasses.icon('gold')} />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('blue')}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
                       Total de Agendamentos
                     </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
                       {totalStats.appointments}
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-xs ${theme.colors.text.tertiary}`}>
                       {mockProfessionals.length} profissionais ativos
                     </p>
                   </div>
-                  <div className="bg-blue-500 p-3 rounded-lg">
-                    <Calendar className="w-6 h-6 text-white" />
+                  <div className={iconClasses.container('blue')}>
+                    <Calendar className={iconClasses.icon('blue')} />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('red')}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
                       Taxa de Cancelamento
                     </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
                       {totalStats.avgCancellationRate.toFixed(1)}%
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-xs ${theme.colors.text.tertiary}`}>
                       {totalStats.cancelled} cancelamentos
                     </p>
                   </div>
-                  <div className="bg-red-500 p-3 rounded-lg">
-                    <AlertCircle className="w-6 h-6 text-white" />
+                  <div className={iconClasses.container('red')}>
+                    <AlertCircle className={iconClasses.icon('red')} />
                   </div>
                 </div>
               </CardContent>
@@ -279,43 +265,43 @@ export function DashboardProfissionais() {
           </motion.div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className={pageClasses.grid2()}>
           {/* Ranking de Profissionais */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-gold" />
+            <Card className={cardClasses.container('base')}>
+              <CardHeader className={theme.components.cardHeader}>
+                <CardTitle className={`flex items-center gap-2 ${theme.components.cardTitle}`}>
+                  <TrendingUp className={`w-5 h-5 ${theme.colors.icon.gold}`} />
                   Ranking por Receita
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="divide-y divide-gray-100">
+                <div className={theme.colors.divider.light}>
                   {topProfessionals.map((prof, index) => (
                     <div
                       key={prof.id}
-                      className="p-6 hover:bg-gray-50 transition-colors"
+                      className={`p-6 ${theme.components.table.row}`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex gap-4 items-center flex-1">
                           <div className={`
                             w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg
-                            ${index === 0 ? 'bg-gold text-white' : ''}
-                            ${index === 1 ? 'bg-gray-300 text-gray-700' : ''}
+                            ${index === 0 ? 'bg-gold text-black' : ''}
+                            ${index === 1 ? 'bg-gray-700 text-white' : ''}
                             ${index === 2 ? 'bg-amber-600 text-white' : ''}
-                            ${index > 2 ? 'bg-gray-100 text-gray-600' : ''}
+                            ${index > 2 ? 'bg-white/10 text-gray-400' : ''}
                           `}>
                             {index + 1}
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">
+                            <h4 className={`font-semibold ${theme.colors.text.primary} mb-1`}>
                               {prof.name}
                             </h4>
-                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                            <div className={`flex items-center gap-3 text-sm ${theme.colors.text.tertiary}`}>
                               <span className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-gold fill-gold" />
                                 {prof.rating.toFixed(1)}
@@ -327,10 +313,10 @@ export function DashboardProfissionais() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-bold text-gray-900">
+                          <p className={`text-xl font-bold ${theme.colors.text.primary}`}>
                             {formatCurrency(prof.totalRevenue)}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                             {prof.completionRate.toFixed(0)}% conclusão
                           </p>
                         </div>
@@ -348,10 +334,10 @@ export function DashboardProfissionais() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-gold" />
+            <Card className={cardClasses.container('base')}>
+              <CardHeader className={theme.components.cardHeader}>
+                <CardTitle className={`flex items-center gap-2 ${theme.components.cardTitle}`}>
+                  <Calendar className={`w-5 h-5 ${theme.colors.icon.gold}`} />
                   Serviços por Profissional
                 </CardTitle>
               </CardHeader>
@@ -360,10 +346,10 @@ export function DashboardProfissionais() {
                   {serviceDistribution.slice(0, 8).map((service) => (
                     <div key={service.service}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className={`text-sm font-medium ${theme.colors.text.secondary}`}>
                           {service.service}
                         </span>
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className={`text-sm font-bold ${theme.colors.text.primary}`}>
                           {service.total} atendimentos
                         </span>
                       </div>
@@ -405,62 +391,62 @@ export function DashboardProfissionais() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card>
-            <CardHeader className="border-b border-gray-100">
-              <CardTitle>Análise Detalhada por Profissional</CardTitle>
+          <Card className={cardClasses.container('base')}>
+            <CardHeader className={theme.components.cardHeader}>
+              <CardTitle className={theme.components.cardTitle}>Análise Detalhada por Profissional</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className={theme.components.table.header}>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Profissional
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Avaliação
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Agendamentos
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Concluídos
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Cancelados
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Receita
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className={theme.components.table.body}>
                     {topProfessionals.map((prof) => (
-                      <tr key={prof.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-medium text-gray-900">{prof.name}</div>
+                      <tr key={prof.id} className={theme.components.table.row}>
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
+                          <div className={`font-medium ${theme.colors.text.primary}`}>{prof.name}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
                           <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 text-gold fill-gold" />
-                            <span className="font-semibold">{prof.rating.toFixed(1)}</span>
+                            <span className={`font-semibold ${theme.colors.text.primary}`}>{prof.rating.toFixed(1)}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="font-semibold">{prof.appointmentsCount}</span>
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
+                          <span className={`font-semibold ${theme.colors.text.primary}`}>{prof.appointmentsCount}</span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
                           <Badge variant="default" className="bg-green-500">
                             {prof.completedCount} ({prof.completionRate.toFixed(0)}%)
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
                           <Badge variant="destructive">
                             {prof.cancelledCount} ({prof.cancellationRate.toFixed(0)}%)
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="font-bold text-gray-900">
+                        <td className={`${theme.components.table.cell} whitespace-nowrap`}>
+                          <span className={`font-bold ${theme.colors.text.primary}`}>
                             {formatCurrency(prof.totalRevenue)}
                           </span>
                         </td>

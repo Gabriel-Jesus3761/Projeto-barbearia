@@ -15,21 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { mockAppointments } from "@/data/mockData";
 import { formatCurrency, formatDate } from "@/lib/utils";
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
-};
+import { theme, cardClasses, iconClasses, pageClasses } from "@/styles/theme";
 
 type DateRange = { from?: Date; to?: Date };
 
@@ -257,14 +243,14 @@ export function DashboardAgendamentos() {
   };
 
   return (
-    <div>
+    <div className={pageClasses.container()}>
       <Header
         title="Dashboard de Agendamentos"
         subtitle="Análise de agendamentos e padrões de horários"
         onMobileMenuClick={() => setIsMobileMenuOpen(true)}
       />
 
-      <div className="p-4 md:p-8">
+      <div className={pageClasses.content()}>
         {/* Filtros */}
         <div className="mb-6 flex flex-col sm:flex-row gap-3">
           <DateRangePicker
@@ -276,100 +262,84 @@ export function DashboardAgendamentos() {
 
         {/* Cards de Estatísticas Gerais */}
         <motion.div
-          variants={container}
+          variants={theme.animations.container}
           initial="hidden"
           animate="show"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('blue')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Total de Agendamentos
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {totalStats.total}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Média: {totalStats.avgPerDay.toFixed(1)}/dia
-                    </p>
-                  </div>
-                  <div className="bg-blue-500 p-3 rounded-lg">
-                    <Calendar className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('blue')}>
+                  <Calendar className={iconClasses.icon('blue')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Total de Agendamentos
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {totalStats.total}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  Média: {totalStats.avgPerDay.toFixed(1)}/dia
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('green')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Concluídos
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {totalStats.completed}
-                    </h3>
-                    <p className="text-xs text-green-600 font-semibold">
-                      {totalStats.completionRate.toFixed(1)}% de conclusão
-                    </p>
-                  </div>
-                  <div className="bg-green-500 p-3 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('green')}>
+                  <CheckCircle className={iconClasses.icon('green')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Concluídos
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {totalStats.completed}
+                </h3>
+                <p className="text-xs text-green-400 font-semibold">
+                  {totalStats.completionRate.toFixed(1)}% de conclusão
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('red')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Cancelados
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {totalStats.cancelled}
-                    </h3>
-                    <p className="text-xs text-red-600 font-semibold">
-                      {totalStats.cancellationRate.toFixed(1)}% de cancelamento
-                    </p>
-                  </div>
-                  <div className="bg-red-500 p-3 rounded-lg">
-                    <XCircle className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('red')}>
+                  <XCircle className={iconClasses.icon('red')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Cancelados
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {totalStats.cancelled}
+                </h3>
+                <p className="text-xs text-red-400 font-semibold">
+                  {totalStats.cancellationRate.toFixed(1)}% de cancelamento
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('yellow')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Pendentes/Confirmados
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {totalStats.pending + totalStats.confirmed}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {totalStats.pending} pendentes, {totalStats.confirmed}{" "}
-                      confirmados
-                    </p>
-                  </div>
-                  <div className="bg-gold p-3 rounded-lg">
-                    <Clock className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('yellow')}>
+                  <Clock className={iconClasses.icon('yellow')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Pendentes/Confirmados
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {totalStats.pending + totalStats.confirmed}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  {totalStats.pending} pendentes, {totalStats.confirmed}{" "}
+                  confirmados
+                </p>
               </CardContent>
             </Card>
           </motion.div>
@@ -382,9 +352,9 @@ export function DashboardAgendamentos() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2">
+            <Card className={theme.colors.card.base}>
+              <CardHeader className={`border-b ${theme.colors.border.light}`}>
+                <CardTitle className={`flex items-center gap-2 ${theme.colors.text.primary}`}>
                   <TrendingUp className="w-5 h-5 text-gold" />
                   Evolução Diária
                 </CardTitle>
@@ -394,14 +364,14 @@ export function DashboardAgendamentos() {
                   {dailyStats.slice(-10).map((day) => (
                     <div key={day.date.toISOString()}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className={`text-sm font-medium ${theme.colors.text.primary}`}>
                           {formatDate(day.date)}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-gray-900">
+                          <span className={`text-sm font-bold ${theme.colors.text.primary}`}>
                             {day.total} agendamentos
                           </span>
-                          <span className="text-sm text-gray-500">
+                          <span className={`text-sm ${theme.colors.text.tertiary}`}>
                             {formatCurrency(day.revenue)}
                           </span>
                         </div>
@@ -467,9 +437,9 @@ export function DashboardAgendamentos() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2">
+            <Card className={theme.colors.card.base}>
+              <CardHeader className={`border-b ${theme.colors.border.light}`}>
+                <CardTitle className={`flex items-center gap-2 ${theme.colors.text.primary}`}>
                   <Clock className="w-5 h-5 text-gold" />
                   Horários de Pico
                 </CardTitle>
@@ -485,27 +455,27 @@ export function DashboardAgendamentos() {
                             w-8 h-8 rounded flex items-center justify-center text-sm font-bold
                             ${
                               index === 0
-                                ? "bg-gold text-white"
-                                : "bg-gray-100 text-gray-600"
+                                ? "bg-gold text-black"
+                                : "bg-white/10 text-gray-300"
                             }
                           `}
                           >
                             {index + 1}
                           </div>
-                          <span className="text-sm font-medium text-gray-700">
+                          <span className={`text-sm font-medium ${theme.colors.text.primary}`}>
                             {hourStat.hour}
                           </span>
                         </div>
                         <div className="text-right">
-                          <span className="text-sm font-bold text-gray-900">
+                          <span className={`text-sm font-bold ${theme.colors.text.primary}`}>
                             {hourStat.count} agendamentos
                           </span>
-                          <div className="text-xs text-gray-500">
+                          <div className={`text-xs ${theme.colors.text.tertiary}`}>
                             {formatCurrency(hourStat.revenue)}
                           </div>
                         </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-white/10 rounded-full h-2">
                         <div
                           className="bg-gold h-2 rounded-full"
                           style={{
@@ -521,8 +491,8 @@ export function DashboardAgendamentos() {
                   ))}
                 </div>
 
-                <div className="border-t border-gray-100 pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                <div className={`border-t ${theme.colors.border.light} pt-4`}>
+                  <h4 className={`text-sm font-medium ${theme.colors.text.primary} mb-3`}>
                     Distribuição por Horário
                   </h4>
                   <div className="grid grid-cols-5 gap-1">
@@ -545,7 +515,7 @@ export function DashboardAgendamentos() {
                               title={`${hourStat.hour}: ${hourStat.count} agendamentos`}
                             />
                           </div>
-                          <span className="text-xs text-gray-500 mt-1">
+                          <span className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                             {hourStat.hour.split(":")[0]}h
                           </span>
                         </div>
@@ -564,9 +534,9 @@ export function DashboardAgendamentos() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card>
-            <CardHeader className="border-b border-gray-100">
-              <CardTitle className="flex items-center gap-2">
+          <Card className={theme.colors.card.base}>
+            <CardHeader className={`border-b ${theme.colors.border.light}`}>
+              <CardTitle className={`flex items-center gap-2 ${theme.colors.text.primary}`}>
                 <Calendar className="w-5 h-5 text-gold" />
                 Desempenho por Dia da Semana
               </CardTitle>
@@ -583,9 +553,9 @@ export function DashboardAgendamentos() {
                   return (
                     <div
                       key={stat.day}
-                      className="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="flex flex-col items-center p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
                     >
-                      <div className="text-sm font-medium text-gray-700 mb-2">
+                      <div className={`text-sm font-medium ${theme.colors.text.primary} mb-2`}>
                         {stat.day.substring(0, 3)}
                       </div>
                       <div className="w-full h-32 flex items-end mb-2">
@@ -595,10 +565,10 @@ export function DashboardAgendamentos() {
                         />
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-bold text-gray-900">
+                        <div className={`text-xl font-bold ${theme.colors.text.primary}`}>
                           {stat.count}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className={`text-xs ${theme.colors.text.tertiary}`}>
                           {formatCurrency(stat.revenue)}
                         </div>
                       </div>
@@ -617,71 +587,71 @@ export function DashboardAgendamentos() {
           transition={{ delay: 0.7 }}
           className="mt-8"
         >
-          <Card>
-            <CardHeader className="border-b border-gray-100">
-              <CardTitle>Últimos Agendamentos</CardTitle>
+          <Card className={theme.colors.card.base}>
+            <CardHeader className={`border-b ${theme.colors.border.light}`}>
+              <CardTitle className={theme.colors.text.primary}>Últimos Agendamentos</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className={theme.components.table.header}>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Data e Hora
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Cliente
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Serviço
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Profissional
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={theme.components.table.headerCell}>
                         Valor
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className={theme.components.table.body}>
                     {filteredAppointments.slice(0, 15).map((apt) => (
-                      <tr key={apt.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                      <tr key={apt.id} className={theme.components.table.row}>
+                        <td className={theme.components.table.cell}>
+                          <div className={`text-sm ${theme.colors.text.primary}`}>
                             {formatDate(apt.date)}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className={`text-xs ${theme.colors.text.tertiary}`}>
                             {apt.time}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className={theme.components.table.cell}>
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-400" />
-                            <span className="font-medium text-gray-900">
+                            <User className={`w-4 h-4 ${theme.colors.text.tertiary}`} />
+                            <span className={`font-medium ${theme.colors.text.primary}`}>
                               {apt.clientName}
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-900">
+                        <td className={theme.components.table.cell}>
+                          <span className={`text-sm ${theme.colors.text.primary}`}>
                             {apt.service}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-500">
+                        <td className={theme.components.table.cell}>
+                          <span className={`text-sm ${theme.colors.text.secondary}`}>
                             {apt.professional}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className={theme.components.table.cell}>
                           <Badge variant={getStatusColor(apt.status)}>
                             {getStatusLabel(apt.status)}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="font-bold text-gray-900">
+                        <td className={theme.components.table.cell}>
+                          <span className={`font-bold ${theme.colors.text.primary}`}>
                             {formatCurrency(apt.price)}
                           </span>
                         </td>

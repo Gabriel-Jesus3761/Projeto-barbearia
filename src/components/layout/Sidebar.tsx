@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
     label: 'Painéis de gestão',
     icon: LayoutDashboard,
     children: [
-      { to: '/', icon: LayoutDashboard, label: 'Dashboard Geral' },
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard Geral' },
       { to: '/dashboard/financeiro', icon: DollarSign, label: 'Financeiro' },
       { to: '/dashboard/profissionais', icon: UserCheck, label: 'Profissionais' },
       { to: '/dashboard/servicos', icon: ShoppingBag, label: 'Serviços' },
@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
   { to: '/agendamentos', icon: Calendar, label: 'Agendamentos' },
   { to: '/servicos', icon: Scissors, label: 'Serviços' },
   { to: '/profissionais', icon: Users, label: 'Profissionais' },
+  { to: '/dashboard/configuracoes', icon: Settings, label: 'Configurações' },
 ]
 
 interface SidebarProps {
@@ -94,11 +95,6 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
   const handleLogout = () => {
     localStorage.removeItem('selected_business_id')
     navigate('/selecionar-empresa')
-  }
-
-  // Handle settings
-  const handleSettings = () => {
-    navigate('/configuracoes')
   }
 
   return (
@@ -335,7 +331,7 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
                 >
                   <p className="text-sm font-medium text-white whitespace-nowrap">{user?.name}</p>
                   <p className="text-xs text-gray-400 whitespace-nowrap">
-                    {user?.role === 'owner' ? 'Proprietário' : 'Cliente'}
+                    {user?.activeRole === 'owner' ? 'Proprietário' : user?.activeRole === 'professional' ? 'Profissional' : 'Cliente'}
                   </p>
                 </motion.div>
               )}
@@ -344,32 +340,6 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
 
           {/* Action Buttons */}
           <div className="space-y-1">
-            {/* Settings Button */}
-            <button
-              onClick={handleSettings}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-                "hover:bg-gold/10 text-gray-300 hover:text-white",
-                !isMobile && !shouldExpand && "justify-center"
-              )}
-              title={!isMobile && !shouldExpand ? "Configurações" : undefined}
-            >
-              <Settings className="w-5 h-5 flex-shrink-0" />
-              <AnimatePresence>
-                {(shouldExpand || isMobileOpen) && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="font-medium whitespace-nowrap overflow-hidden"
-                  >
-                    Configurações
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </button>
-
             {/* Logout Button */}
             <button
               onClick={handleLogout}

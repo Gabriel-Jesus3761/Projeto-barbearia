@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { mockProfessionals } from '@/data/mockData'
 import { cn } from '@/lib/utils'
+import { theme, pageClasses } from '@/styles/theme'
 
 type PaymentType = 'fixed' | 'percentage'
 
@@ -65,21 +66,21 @@ export function Profissionais() {
   }
 
   return (
-    <div>
+    <div className={pageClasses.container()}>
       <Header
         title="Profissionais"
         subtitle="Gerencie sua equipe"
         onMobileMenuClick={() => setIsMobileMenuOpen(true)}
       />
 
-      <div className="p-4 md:p-8">
+      <div className={pageClasses.content()}>
         {/* Actions Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
-            <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+            <h2 className={`text-lg md:text-xl font-semibold ${theme.colors.text.primary}`}>
               {mockProfessionals.length} Profissionais
             </h2>
-            <p className="text-xs md:text-sm text-gray-500 mt-1">
+            <p className={`text-xs md:text-sm ${theme.colors.text.secondary} mt-1`}>
               {mockProfessionals.filter(p => p.available).length} disponíveis para agendamento
             </p>
           </div>
@@ -109,7 +110,7 @@ export function Profissionais() {
               transition={{ delay: index * 0.1 }}
               whileHover={{ y: -5 }}
             >
-              <Card className="h-full hover:shadow-xl transition-all duration-300 group border border-black">
+              <Card className={`h-full ${theme.colors.card.base} hover:shadow-xl transition-all duration-300 group border-l-4 border-l-gold`}>
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="bg-gradient-to-br from-gold to-gold-dark p-3 rounded-lg">
@@ -125,27 +126,27 @@ export function Profissionais() {
                 </CardHeader>
 
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className={`text-sm ${theme.colors.text.secondary} mb-4`}>
                     {professional.role}
                   </p>
 
                   {/* Rating */}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-600">
+                      <span className={`flex items-center gap-2 ${theme.colors.text.secondary}`}>
                         <Star className="w-4 h-4 text-gold fill-gold" />
                         Avaliação
                       </span>
-                      <span className="font-semibold text-gray-900">
+                      <span className={`font-semibold ${theme.colors.text.primary}`}>
                         {professional.rating.toFixed(1)} / 5.0
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-600">
+                      <span className={`flex items-center gap-2 ${theme.colors.text.secondary}`}>
                         <Calendar className="w-4 h-4 text-gold" />
                         Agendamentos
                       </span>
-                      <span className="font-semibold text-gray-900">
+                      <span className={`font-semibold ${theme.colors.text.primary}`}>
                         {professional.totalAppointments}
                       </span>
                     </div>
@@ -153,7 +154,7 @@ export function Profissionais() {
 
                   {/* Specialties */}
                   <div className="mb-4">
-                    <p className="text-xs text-gray-500 mb-2">
+                    <p className={`text-xs ${theme.colors.text.tertiary} mb-2`}>
                       Especialidades:
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -166,7 +167,7 @@ export function Profissionais() {
                   </div>
 
                   {/* Actions */}
-                  <div className="space-y-2 pt-4 border-t border-gray-100">
+                  <div className={`space-y-2 pt-4 border-t ${theme.colors.border.light}`}>
                     <div className="grid grid-cols-2 gap-2">
                       <Button variant="outline" size="sm">
                         <Mail className="w-3 h-3 mr-1" />
@@ -186,7 +187,7 @@ export function Profissionais() {
                       <DollarSign className="w-3 h-3 mr-1" />
                       Configurar Pagamento
                     </Button>
-                    <Button variant="ghost" size="sm" className="w-full text-gold hover:text-gold-dark">
+                    <Button variant="ghost" size="sm" className="w-full text-gold hover:text-gold-dark hover:bg-white/5">
                       Ver Perfil Completo
                     </Button>
                   </div>
@@ -217,22 +218,22 @@ export function Profissionais() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
             >
-              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-white/10">
                 {/* Modal Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between p-6 border-b border-white/10">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">
+                    <h3 className={`text-2xl font-bold ${theme.colors.text.primary}`}>
                       Vincular Profissional
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className={`text-sm ${theme.colors.text.secondary} mt-1`}>
                       Compartilhe o QR Code ou código
                     </p>
                   </div>
                   <button
                     onClick={() => setIsAddProfModalOpen(false)}
-                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className={`w-5 h-5 ${theme.colors.text.tertiary}`} />
                   </button>
                 </div>
 
@@ -240,10 +241,10 @@ export function Profissionais() {
                 <div className="p-6 space-y-6">
                   {/* QR Code */}
                   <div className="flex flex-col items-center">
-                    <div className="w-64 h-64 bg-gray-100 rounded-xl flex items-center justify-center mb-4">
-                      <QrCode className="w-32 h-32 text-gray-400" />
+                    <div className="w-64 h-64 bg-white/5 rounded-xl flex items-center justify-center mb-4 border border-white/10">
+                      <QrCode className={`w-32 h-32 ${theme.colors.text.tertiary}`} />
                     </div>
-                    <p className="text-sm text-gray-500 text-center">
+                    <p className={`text-sm ${theme.colors.text.secondary} text-center`}>
                       O profissional deve escanear este QR Code com o app
                     </p>
                   </div>
@@ -251,16 +252,16 @@ export function Profissionais() {
                   {/* Divider */}
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-200"></div>
+                      <div className="w-full border-t border-white/10"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">ou</span>
+                      <span className={`px-2 bg-gray-900 ${theme.colors.text.tertiary}`}>ou</span>
                     </div>
                   </div>
 
                   {/* Code */}
                   <div>
-                    <Label className="text-gray-700 mb-2 block">Código de Vinculação</Label>
+                    <Label className={`${theme.colors.text.secondary} mb-2 block`}>Código de Vinculação</Label>
                     <div className="flex gap-2">
                       <Input
                         value={linkCode}
@@ -279,7 +280,7 @@ export function Profissionais() {
                         )}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className={`text-xs ${theme.colors.text.tertiary} mt-2`}>
                       O profissional pode inserir este código manualmente
                     </p>
                   </div>
@@ -310,22 +311,22 @@ export function Profissionais() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
             >
-              <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10">
                 {/* Modal Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between p-6 border-b border-white/10">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">
+                    <h3 className={`text-2xl font-bold ${theme.colors.text.primary}`}>
                       Configurar Pagamento
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className={`text-sm ${theme.colors.text.secondary} mt-1`}>
                       Defina como o profissional será remunerado
                     </p>
                   </div>
                   <button
                     onClick={handleClosePaymentModal}
-                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className={`w-5 h-5 ${theme.colors.text.tertiary}`} />
                   </button>
                 </div>
 
@@ -339,27 +340,27 @@ export function Profissionais() {
                         "p-6 rounded-xl border-2 transition-all group",
                         paymentType === 'percentage'
                           ? "border-gold bg-gold/10"
-                          : "border-gray-200 hover:border-gold/50 hover:bg-gold/5"
+                          : "border-white/20 hover:border-gold/50 hover:bg-gold/5"
                       )}
                     >
                       <div className="flex flex-col items-center gap-3">
                         <div className={cn(
                           "w-12 h-12 rounded-full flex items-center justify-center",
-                          paymentType === 'percentage' ? "bg-gold" : "bg-gray-100 group-hover:bg-gold/20"
+                          paymentType === 'percentage' ? "bg-gold" : "bg-white/5 group-hover:bg-gold/20"
                         )}>
                           <Percent className={cn(
                             "w-6 h-6",
-                            paymentType === 'percentage' ? "text-white" : "text-gray-600 group-hover:text-gold"
+                            paymentType === 'percentage' ? "text-white" : `${theme.colors.text.secondary} group-hover:text-gold`
                           )} />
                         </div>
                         <div className="text-center">
                           <h4 className={cn(
                             "font-semibold",
-                            paymentType === 'percentage' ? "text-gold" : "text-gray-900"
+                            paymentType === 'percentage' ? "text-gold" : theme.colors.text.primary
                           )}>
                             Porcentagem
                           </h4>
-                          <p className="text-xs text-gray-500 mt-1">Por serviço</p>
+                          <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>Por serviço</p>
                         </div>
                       </div>
                     </button>
@@ -370,27 +371,27 @@ export function Profissionais() {
                         "p-6 rounded-xl border-2 transition-all group",
                         paymentType === 'fixed'
                           ? "border-gold bg-gold/10"
-                          : "border-gray-200 hover:border-gold/50 hover:bg-gold/5"
+                          : "border-white/20 hover:border-gold/50 hover:bg-gold/5"
                       )}
                     >
                       <div className="flex flex-col items-center gap-3">
                         <div className={cn(
                           "w-12 h-12 rounded-full flex items-center justify-center",
-                          paymentType === 'fixed' ? "bg-gold" : "bg-gray-100 group-hover:bg-gold/20"
+                          paymentType === 'fixed' ? "bg-gold" : "bg-white/5 group-hover:bg-gold/20"
                         )}>
                           <DollarSign className={cn(
                             "w-6 h-6",
-                            paymentType === 'fixed' ? "text-white" : "text-gray-600 group-hover:text-gold"
+                            paymentType === 'fixed' ? "text-white" : `${theme.colors.text.secondary} group-hover:text-gold`
                           )} />
                         </div>
                         <div className="text-center">
                           <h4 className={cn(
                             "font-semibold",
-                            paymentType === 'fixed' ? "text-gold" : "text-gray-900"
+                            paymentType === 'fixed' ? "text-gold" : theme.colors.text.primary
                           )}>
                             Valor Fixo
                           </h4>
-                          <p className="text-xs text-gray-500 mt-1">Mensal</p>
+                          <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>Mensal</p>
                         </div>
                       </div>
                     </button>
@@ -399,7 +400,7 @@ export function Profissionais() {
                   {/* Configuração de Valor */}
                   {paymentType === 'percentage' ? (
                     <div className="space-y-2">
-                      <Label htmlFor="percentage" className="text-gray-700">
+                      <Label htmlFor="percentage" className={theme.colors.text.secondary}>
                         Porcentagem do Profissional (%)
                       </Label>
                       <div className="flex items-center gap-4">
@@ -412,17 +413,17 @@ export function Profissionais() {
                           onChange={(e) => setPercentageValue(e.target.value)}
                           className="text-lg"
                         />
-                        <span className="text-sm text-gray-500 whitespace-nowrap">
+                        <span className={`text-sm ${theme.colors.text.tertiary} whitespace-nowrap`}>
                           Estabelecimento: {100 - parseFloat(percentageValue || '0')}%
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className={`text-xs ${theme.colors.text.tertiary}`}>
                         Exemplo: Serviço de R$ 100 → Profissional recebe R$ {parseFloat(percentageValue || '0')} e estabelecimento recebe R$ {100 - parseFloat(percentageValue || '0')}
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <Label htmlFor="fixed" className="text-gray-700">
+                      <Label htmlFor="fixed" className={theme.colors.text.secondary}>
                         Valor Mensal Fixo (R$)
                       </Label>
                       <Input
@@ -435,7 +436,7 @@ export function Profissionais() {
                         placeholder="Ex: 3000.00"
                         className="text-lg"
                       />
-                      <p className="text-xs text-gray-500">
+                      <p className={`text-xs ${theme.colors.text.tertiary}`}>
                         O profissional receberá este valor fixo mensalmente, independente do número de serviços
                       </p>
                     </div>

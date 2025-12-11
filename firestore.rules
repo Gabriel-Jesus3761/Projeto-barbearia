@@ -159,24 +159,18 @@ service cloud.firestore {
         && request.resource.data.ownerId == request.auth.uid
         && isValidStringLength(request.resource.data.name, 2, 100)
         && isValidStringLength(request.resource.data.description, 0, 500)
-        && request.resource.data.status == 'active'
         && isValidTimestamp(request.resource.data.createdAt)
         && isValidTimestamp(request.resource.data.updatedAt)
-        && (!request.resource.data.keys().hasAny(['phone']) || isValidPhone(request.resource.data.phone))
-        && (!request.resource.data.keys().hasAny(['photoURL']) || isValidURL(request.resource.data.photoURL))
-        && request.resource.data.professionals is list
+        && request.resource.data.isActive == true
         && request.resource.data.rating >= 0 && request.resource.data.rating <= 5
-        && request.resource.data.reviewsCount >= 0;
+        && request.resource.data.totalReviews >= 0;
 
       // Atualização: apenas o dono da barbearia
       allow update: if isAuthenticated()
         && resource.data.ownerId == request.auth.uid
         && request.resource.data.ownerId == resource.data.ownerId  // ownerId imutável
         && request.resource.data.createdAt == resource.data.createdAt  // createdAt imutável
-        && isValidTimestamp(request.resource.data.updatedAt)
-        // Campos de estatísticas NÃO podem ser editados pelo cliente
-        && request.resource.data.rating == resource.data.rating
-        && request.resource.data.reviewsCount == resource.data.reviewsCount;
+        && isValidTimestamp(request.resource.data.updatedAt);
 
       // Deleção: apenas o dono (usar Cloud Function para limpeza adequada)
       allow delete: if isAuthenticated()

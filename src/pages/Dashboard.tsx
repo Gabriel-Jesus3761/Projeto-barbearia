@@ -7,21 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { mockAppointments } from '@/data/mockData'
 import { formatCurrency, formatDate } from '@/lib/utils'
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-}
+import { theme, cardClasses, iconClasses, pageClasses } from '@/styles/theme'
 
 export function Dashboard() {
   const { setIsMobileMenuOpen } = useOutletContext<{ setIsMobileMenuOpen: (value: boolean) => void }>()
@@ -141,109 +127,93 @@ export function Dashboard() {
   }
 
   return (
-    <div>
+    <div className={pageClasses.container()}>
       <Header
         title="Dashboard Geral"
         subtitle={`Visão geral do dia - ${formatDate(new Date())}`}
         onMobileMenuClick={() => setIsMobileMenuOpen(true)}
       />
 
-      <div className="p-4 md:p-8">
+      <div className={pageClasses.content()}>
         {/* Stats Grid - Cards de resumo do dia */}
         <motion.div
-          variants={container}
+          variants={theme.animations.container}
           initial="hidden"
           animate="show"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('blue')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Agendamentos Hoje
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {todayStats.total}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {todayStats.completed} concluídos, {todayStats.confirmed} confirmados
-                    </p>
-                  </div>
-                  <div className="bg-blue-500 p-3 rounded-lg">
-                    <Calendar className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('blue')}>
+                  <Calendar className={iconClasses.icon('blue')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Agendamentos Hoje
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {todayStats.total}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  {todayStats.completed} concluídos, {todayStats.confirmed} confirmados
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('green')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Receita Hoje
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {formatCurrency(todayStats.revenue)}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      De {todayStats.completed} serviços concluídos
-                    </p>
-                  </div>
-                  <div className="bg-green-500 p-3 rounded-lg">
-                    <DollarSign className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('green')}>
+                  <DollarSign className={iconClasses.icon('green')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Receita Hoje
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {formatCurrency(todayStats.revenue)}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  De {todayStats.completed} serviços concluídos
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('purple')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Clientes Atendidos
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {uniqueClientsToday}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Clientes únicos hoje
-                    </p>
-                  </div>
-                  <div className="bg-purple-500 p-3 rounded-lg">
-                    <Users className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('purple')}>
+                  <Users className={iconClasses.icon('purple')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Clientes Atendidos
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {uniqueClientsToday}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  Clientes únicos hoje
+                </p>
               </CardContent>
             </Card>
           </motion.div>
 
-          <motion.div variants={item}>
-            <Card className="hover:shadow-lg transition-shadow duration-200">
+          <motion.div variants={theme.animations.item}>
+            <Card className={cardClasses.statCard('yellow')}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      Status do Dia
-                    </p>
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                      {todayStats.pending}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Pendentes • {todayStats.cancelled} cancelados
-                    </p>
-                  </div>
-                  <div className="bg-gold p-3 rounded-lg">
-                    <Clock className="w-6 h-6 text-white" />
-                  </div>
+                <div className={iconClasses.container('yellow')}>
+                  <Clock className={iconClasses.icon('yellow')} />
                 </div>
+                <p className={`text-sm font-medium ${theme.colors.text.secondary} mb-1`}>
+                  Status do Dia
+                </p>
+                <h3 className={`text-3xl font-bold ${theme.colors.text.primary} mb-2`}>
+                  {todayStats.pending}
+                </h3>
+                <p className={`text-xs ${theme.colors.text.tertiary}`}>
+                  Pendentes • {todayStats.cancelled} cancelados
+                </p>
               </CardContent>
             </Card>
           </motion.div>
@@ -256,9 +226,9 @@ export function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2 text-base">
+            <Card className={theme.colors.card.base}>
+              <CardHeader className={`border-b ${theme.colors.border.light}`}>
+                <CardTitle className={`flex items-center gap-2 text-base ${theme.colors.text.primary}`}>
                   <UserCheck className="w-5 h-5 text-gold" />
                   Top Profissionais Hoje
                 </CardTitle>
@@ -271,23 +241,23 @@ export function Dashboard() {
                         <div className="flex items-center gap-3">
                           <div className={`
                             w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
-                            ${index === 0 ? 'bg-gold text-white' : 'bg-gray-100 text-gray-600'}
+                            ${index === 0 ? 'bg-gold text-black' : 'bg-white/10 text-gray-300'}
                           `}>
                             {index + 1}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{prof.name}</p>
-                            <p className="text-xs text-gray-500">{prof.count} atendimentos</p>
+                            <p className={`font-medium ${theme.colors.text.primary}`}>{prof.name}</p>
+                            <p className={`text-xs ${theme.colors.text.secondary}`}>{prof.count} atendimentos</p>
                           </div>
                         </div>
-                        <span className="font-bold text-gray-900">
+                        <span className={`font-bold ${theme.colors.text.primary}`}>
                           {formatCurrency(prof.revenue)}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 text-sm py-4">
+                  <p className={`text-center ${theme.colors.text.secondary} text-sm py-4`}>
                     Nenhum atendimento concluído hoje
                   </p>
                 )}
@@ -301,9 +271,9 @@ export function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <Card>
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2 text-base">
+            <Card className={theme.colors.card.base}>
+              <CardHeader className={`border-b ${theme.colors.border.light}`}>
+                <CardTitle className={`flex items-center gap-2 text-base ${theme.colors.text.primary}`}>
                   <Scissors className="w-5 h-5 text-gold" />
                   Serviços Mais Realizados
                 </CardTitle>
@@ -316,23 +286,23 @@ export function Dashboard() {
                         <div className="flex items-center gap-3">
                           <div className={`
                             w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
-                            ${index === 0 ? 'bg-gold text-white' : 'bg-gray-100 text-gray-600'}
+                            ${index === 0 ? 'bg-gold text-black' : 'bg-white/10 text-gray-300'}
                           `}>
                             {index + 1}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{service.name}</p>
-                            <p className="text-xs text-gray-500">{service.count}x realizados</p>
+                            <p className={`font-medium ${theme.colors.text.primary}`}>{service.name}</p>
+                            <p className={`text-xs ${theme.colors.text.secondary}`}>{service.count}x realizados</p>
                           </div>
                         </div>
-                        <span className="font-bold text-gray-900">
+                        <span className={`font-bold ${theme.colors.text.primary}`}>
                           {formatCurrency(service.revenue)}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 text-sm py-4">
+                  <p className={`text-center ${theme.colors.text.secondary} text-sm py-4`}>
                     Nenhum serviço concluído hoje
                   </p>
                 )}
@@ -346,9 +316,9 @@ export function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <Card className="bg-gradient-to-br from-gray-900 to-black text-white">
+            <Card className="bg-gradient-to-br from-gold/20 via-gold/10 to-transparent border-gold/30">
               <CardHeader className="border-b border-gold/20">
-                <CardTitle className="flex items-center gap-2 text-base text-white">
+                <CardTitle className={`flex items-center gap-2 text-base ${theme.colors.text.primary}`}>
                   <TrendingUp className="w-5 h-5 text-gold" />
                   Resumo do Dia
                 </CardTitle>
@@ -356,34 +326,34 @@ export function Dashboard() {
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-400 mb-1">Total de Agendamentos</p>
-                    <h3 className="text-3xl font-bold">{todayStats.total}</h3>
+                    <p className={`text-sm ${theme.colors.text.secondary} mb-1`}>Total de Agendamentos</p>
+                    <h3 className={`text-3xl font-bold ${theme.colors.text.primary}`}>{todayStats.total}</h3>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-700">
-                    <p className="text-sm text-gray-400 mb-2">Status</p>
+                  <div className={`pt-4 border-t ${theme.colors.border.light}`}>
+                    <p className={`text-sm ${theme.colors.text.secondary} mb-2`}>Status</p>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-green-400">Concluídos</span>
-                        <span className="font-semibold">{todayStats.completed}</span>
+                        <span className={`font-semibold ${theme.colors.text.primary}`}>{todayStats.completed}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-blue-400">Confirmados</span>
-                        <span className="font-semibold">{todayStats.confirmed}</span>
+                        <span className={`font-semibold ${theme.colors.text.primary}`}>{todayStats.confirmed}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-yellow-400">Pendentes</span>
-                        <span className="font-semibold">{todayStats.pending}</span>
+                        <span className={`font-semibold ${theme.colors.text.primary}`}>{todayStats.pending}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-red-400">Cancelados</span>
-                        <span className="font-semibold">{todayStats.cancelled}</span>
+                        <span className={`font-semibold ${theme.colors.text.primary}`}>{todayStats.cancelled}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-700">
-                    <p className="text-sm text-gray-400 mb-1">Receita Total</p>
+                  <div className={`pt-4 border-t ${theme.colors.border.light}`}>
+                    <p className={`text-sm ${theme.colors.text.secondary} mb-1`}>Receita Total</p>
                     <h3 className="text-2xl font-bold text-gold">
                       {formatCurrency(todayStats.revenue)}
                     </h3>
@@ -400,10 +370,10 @@ export function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Card>
-            <CardHeader className="border-b border-gray-100">
+          <Card className={theme.colors.card.base}>
+            <CardHeader className={`border-b ${theme.colors.border.light}`}>
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className={`flex items-center gap-2 ${theme.colors.text.primary}`}>
                   <Clock className="w-5 h-5 text-gold" />
                   Próximos Agendamentos de Hoje
                 </CardTitle>
@@ -411,30 +381,30 @@ export function Dashboard() {
             </CardHeader>
             <CardContent className="p-0">
               {upcomingToday.length > 0 ? (
-                <div className="divide-y divide-gray-100">
+                <div className={`divide-y ${theme.colors.border.light}`}>
                   {upcomingToday.map((appointment) => (
                     <div
                       key={appointment.id}
-                      className="p-6 hover:bg-gray-50 transition-colors"
+                      className="p-6 hover:bg-white/5 transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex gap-4 flex-1">
-                          <div className="bg-gold/10 rounded-lg p-3 flex flex-col items-center justify-center min-w-[60px]">
+                          <div className="bg-gold/20 rounded-lg p-3 flex flex-col items-center justify-center min-w-[60px] border border-gold/30">
                             <span className="text-xs uppercase text-gold font-semibold">
                               Hoje
                             </span>
-                            <span className="text-2xl font-bold text-gray-900">
+                            <span className={`text-2xl font-bold ${theme.colors.text.primary}`}>
                               {appointment.time}
                             </span>
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">
+                            <h4 className={`font-semibold ${theme.colors.text.primary} mb-1`}>
                               {appointment.clientName}
                             </h4>
-                            <p className="text-sm text-gray-600 mb-2">
+                            <p className={`text-sm ${theme.colors.text.secondary} mb-2`}>
                               {appointment.service}
                             </p>
-                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                            <div className={`flex items-center gap-3 text-sm ${theme.colors.text.tertiary}`}>
                               <span className="flex items-center gap-1">
                                 <UserCheck className="w-4 h-4" />
                                 {appointment.professional}
@@ -450,7 +420,7 @@ export function Dashboard() {
                           <Badge variant={getStatusColor(appointment.status)}>
                             {getStatusLabel(appointment.status)}
                           </Badge>
-                          <p className="text-lg font-bold text-gray-900 mt-2">
+                          <p className="text-lg font-bold text-gold mt-2">
                             {formatCurrency(appointment.price)}
                           </p>
                         </div>
@@ -459,7 +429,7 @@ export function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="p-8 text-center text-gray-500">
+                <div className={`p-8 text-center ${theme.colors.text.secondary}`}>
                   Nenhum agendamento pendente para hoje
                 </div>
               )}

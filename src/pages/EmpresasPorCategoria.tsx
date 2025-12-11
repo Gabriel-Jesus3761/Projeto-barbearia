@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { mockBusinesses, businessCategories } from '@/data/mockData'
 import { BusinessCategory } from '@/types'
+import { getBusinessesByCategory, type Business } from '@/services/businessService'
 
 // Gallery images based on category and business ID
 const getGalleryImages = (category: string, businessId: string) => {
@@ -237,9 +238,49 @@ export function EmpresasPorCategoria() {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'rating' | 'reviews'>('rating')
+  const [businesses, setBusinesses] = useState<Business[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const category = businessCategories.find((cat) => cat.id === categoryId)
-  const businesses = mockBusinesses.filter((business) => business.category === categoryId)
+
+  // Carregar estabelecimentos reais do Firestore
+  useEffect(() => {
+    const loadBusinesses = async () => {
+      if (!categoryId) return
+
+      setIsLoading(true)
+      try {
+        // Mapear o categoryId da URL para a categoria do estabelecimento
+        const categoryMap: Record<string, string> = {
+          'barbearia': 'Barbearia',
+          'salao': 'Salão de Beleza',
+          'estetica': 'Clínica Estética',
+          'spa': 'Spa',
+          'manicure': 'Manicure e Pedicure',
+          'massagem': 'Massagem',
+          'depilacao': 'Depilação',
+          'maquiagem': 'Maquiagem'
+        }
+
+        const businessCategory = categoryMap[categoryId]
+        if (businessCategory) {
+          const realBusinesses = await getBusinessesByCategory(businessCategory)
+          setBusinesses(realBusinesses)
+        } else {
+          // Fallback para mock se categoria não mapeada
+          setBusinesses(mockBusinesses.filter((business) => business.category === categoryId))
+        }
+      } catch (error) {
+        console.error('Erro ao carregar estabelecimentos:', error)
+        // Fallback para mock em caso de erro
+        setBusinesses(mockBusinesses.filter((business) => business.category === categoryId))
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadBusinesses()
+  }, [categoryId])
 
   const filteredBusinesses = businesses
     .filter((business) =>
@@ -256,16 +297,31 @@ export function EmpresasPorCategoria() {
 
   const getTodayHours = (businessId: string) => {
     const business = businesses.find((b) => b.id === businessId)
-    if (!business) return null
+    if (!business || !business.businessHours) return null
 
+    // Mapear dia da semana (0 = domingo, 1 = segunda, etc.) para string
+    const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
     const today = new Date().getDay()
-    const todayHours = business.businessHours.find((h) => h.dayOfWeek === today)
+    const todayString = dayMap[today]
 
-    if (!todayHours || todayHours.isClosed) {
+    const todayHours = business.businessHours.find((h) => h.day === todayString)
+
+    if (!todayHours || !todayHours.isOpen) {
       return { isOpen: false, hours: 'Fechado hoje' }
     }
 
     return { isOpen: true, hours: `${todayHours.open} - ${todayHours.close}` }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Carregando estabelecimentos...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!category) {

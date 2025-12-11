@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { mockAppointments } from '@/data/mockData'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { theme, pageClasses } from '@/styles/theme'
 
 export function Agendamentos() {
   const { setIsMobileMenuOpen } = useOutletContext<{ setIsMobileMenuOpen: (value: boolean) => void }>()
@@ -50,14 +51,14 @@ export function Agendamentos() {
   }
 
   return (
-    <div>
+    <div className={pageClasses.container()}>
       <Header
         title="Agendamentos"
         subtitle="Gerencie todos os agendamentos"
         onMobileMenuClick={() => setIsMobileMenuOpen(true)}
       />
 
-      <div className="p-4 md:p-8">
+      <div className={pageClasses.content()}>
         {/* Actions Bar */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between mb-6 gap-4">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1">
@@ -128,7 +129,7 @@ export function Agendamentos() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-gold">
+              <Card className={`${theme.colors.card.base} hover:shadow-lg transition-all duration-200 border-l-4 border-l-gold`}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <Badge variant={getStatusColor(appointment.status)}>
@@ -139,30 +140,30 @@ export function Agendamentos() {
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">
+                  <h3 className={`text-lg font-bold ${theme.colors.text.primary} mb-3`}>
                     {appointment.clientName}
                   </h3>
 
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className={`flex items-center gap-2 text-sm ${theme.colors.text.secondary}`}>
                       <Scissors className="w-4 h-4 text-gold" />
                       <span>{appointment.service}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className={`flex items-center gap-2 text-sm ${theme.colors.text.secondary}`}>
                       <User className="w-4 h-4 text-gold" />
                       <span>{appointment.professional}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className={`flex items-center gap-2 text-sm ${theme.colors.text.secondary}`}>
                       <Calendar className="w-4 h-4 text-gold" />
                       <span>{formatDate(appointment.date)}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className={`flex items-center gap-2 text-sm ${theme.colors.text.secondary}`}>
                       <Clock className="w-4 h-4 text-gold" />
                       <span>{appointment.time} • {appointment.duration} min</span>
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-4 border-t border-gray-100">
+                  <div className={`flex gap-2 pt-4 border-t ${theme.colors.border.light}`}>
                     <Button variant="outline" size="sm" className="flex-1">
                       Editar
                     </Button>
@@ -178,11 +179,11 @@ export function Agendamentos() {
 
         {filteredAppointments.length === 0 && (
           <div className="text-center py-12">
-            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+            <Calendar className={`w-16 h-16 ${theme.colors.text.tertiary} mx-auto mb-4`} />
+            <h3 className={`text-lg font-semibold ${theme.colors.text.secondary} mb-2`}>
               Nenhum agendamento encontrado
             </h3>
-            <p className="text-gray-500">
+            <p className={theme.colors.text.tertiary}>
               Tente ajustar os filtros ou criar um novo agendamento
             </p>
           </div>

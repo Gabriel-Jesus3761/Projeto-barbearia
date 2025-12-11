@@ -35,7 +35,9 @@
       "Bash(netstat:*)",
       "Bash(gcloud projects add-iam-policy-binding:*)",
       "Bash(firebase auth:export:*)",
-      "Bash(firebase login:list:*)"
+      "Bash(firebase login:list:*)",
+      "Bash(git checkout:*)",
+      "Bash(python apply_dark_theme.py:*)"
     ],
     "deny": [],
     "ask": []

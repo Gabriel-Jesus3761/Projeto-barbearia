@@ -1,18 +1,44 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Building2, MapPin, Star, TrendingUp, Plus, ArrowRight } from 'lucide-react'
+import { Building2, MapPin, Star, TrendingUp, Plus, ArrowRight, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { mockBusinesses } from '@/data/mockData'
 import { useAuth } from '@/contexts/AuthContext'
+import { getBusinessesByOwner, type Business } from '@/services/businessService'
+import { useToast } from '@/hooks/use-toast'
 
 export function SelecionarEmpresa() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const { toast } = useToast()
+  const [userBusinesses, setUserBusinesses] = useState<Business[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Filtrar empresas do proprietário logado
-  const userBusinesses = mockBusinesses.filter((business) => business.ownerId === user?.id)
+  // Buscar empresas do proprietário logado
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      if (!user?.id) return
+
+      try {
+        setIsLoading(true)
+        const businesses = await getBusinessesByOwner(user.id)
+        setUserBusinesses(businesses)
+      } catch (error: any) {
+        console.error('Erro ao buscar estabelecimentos:', error)
+        toast({
+          title: 'Erro',
+          description: 'Erro ao carregar estabelecimentos',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchBusinesses()
+  }, [user?.id, toast])
 
   const handleSelectBusiness = (businessId: string) => {
     // Salvar a empresa selecionada no contexto/localStorage
@@ -120,7 +146,16 @@ export function SelecionarEmpresa() {
         </motion.div>
 
         {/* Business Cards */}
-        {userBusinesses.length === 0 ? (
+        {isLoading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center py-16"
+          >
+            <Loader2 className="w-12 h-12 text-gold animate-spin mb-4" />
+            <p className="text-white text-lg">Carregando estabelecimentos...</p>
+          </motion.div>
+        ) : userBusinesses.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -139,7 +174,7 @@ export function SelecionarEmpresa() {
                 variant="default"
                 size="lg"
                 className="bg-gradient-to-r from-gold to-yellow-600 hover:from-yellow-600 hover:to-gold text-black font-semibold"
-                onClick={() => alert('Funcionalidade de cadastro em desenvolvimento')}
+                onClick={() => navigate('/cadastrar-estabelecimento')}
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Cadastrar Estabelecimento
@@ -230,7 +265,7 @@ export function SelecionarEmpresa() {
             >
               <Card
                 className="h-full cursor-pointer hover:shadow-2xl hover:shadow-gold/10 transition-all duration-300 border-2 border-dashed border-white/20 hover:border-gold/50 group bg-white/5 backdrop-blur-sm"
-                onClick={() => alert('Funcionalidade de cadastro em desenvolvimento')}
+                onClick={() => navigate('/cadastrar-estabelecimento')}
               >
                 <CardContent className="p-6 flex flex-col items-center justify-center h-full min-h-[400px]">
                   <div className="w-20 h-20 bg-white/5 group-hover:bg-gold/20 rounded-full flex items-center justify-center mb-4 transition-colors">

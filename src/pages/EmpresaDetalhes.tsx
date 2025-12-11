@@ -31,6 +31,7 @@ import { Popover } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { mockBusinesses, mockServices, mockProfessionals } from '@/data/mockData'
 import { formatCurrency } from '@/lib/utils'
+import { getBusinessById, type Business } from '@/services/businessService'
 
 export function EmpresaDetalhes() {
   const { businessId } = useParams<{ businessId: string }>()
@@ -42,133 +43,60 @@ export function EmpresaDetalhes() {
   const [selectedTime, setSelectedTime] = useState<string>('')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [business, setBusiness] = useState<Business | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const business = mockBusinesses.find((b) => b.id === businessId)
+  // Carregar estabelecimento do Firestore
+  useEffect(() => {
+    const loadBusiness = async () => {
+      if (!businessId) return
+
+      setIsLoading(true)
+      try {
+        const businessData = await getBusinessById(businessId)
+        if (businessData) {
+          setBusiness(businessData)
+        } else {
+          // Fallback para mock
+          const mockBusiness = mockBusinesses.find((b) => b.id === businessId)
+          if (mockBusiness) {
+            setBusiness(mockBusiness as any)
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar estabelecimento:', error)
+        // Fallback para mock
+        const mockBusiness = mockBusinesses.find((b) => b.id === businessId)
+        if (mockBusiness) {
+          setBusiness(mockBusiness as any)
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadBusiness()
+  }, [businessId])
+
   const businessServices = mockServices.filter((s) => s.businessId === businessId)
   const businessProfessionals = mockProfessionals.filter((p) => p.businessId === businessId)
 
-  // Generate gallery images based on business category and ID
+  // Get gallery images from business data or fallback to main image
   const getGalleryImages = () => {
     if (!business) return []
 
-    const categoryImages: Record<string, string[][]> = {
-      barbearia: [
-        // BarberPro Premium (biz-1)
-        [
-          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=1200&h=600&fit=crop',
-        ],
-        // Barbearia Clássica (biz-2)
-        [
-          'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1511511450040-677116ff389e?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1528920304568-7aa06b3dda8b?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1612637612912-aab973f0f939?w=1200&h=600&fit=crop',
-        ],
-        // The Barber Shop (biz-3)
-        [
-          'https://images.unsplash.com/photo-1493256338651-d82f7acb2b38?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1521490878887-76e391a7b9b2?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1542345812-d98b5cd6cf98?w=1200&h=600&fit=crop',
-        ],
-      ],
-      salao: [
-        // Salão Estilo & Charme (biz-4)
-        [
-          'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=1200&h=600&fit=crop',
-        ],
-        // Beleza Pura (biz-5)
-        [
-          'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1487412912498-0447578fcca8?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1595475884562-073c30d45670?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=1200&h=600&fit=crop',
-        ],
-      ],
-      estetica: [
-        // Estética Renove (biz-6)
-        [
-          'https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=1200&h=600&fit=crop',
-        ],
-      ],
-      spa: [
-        // Spa Serenity (biz-7)
-        [
-          'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1552693673-1bf958298935?w=1200&h=600&fit=crop',
-        ],
-      ],
-      manicure: [
-        // Nails Art Studio (biz-8)
-        [
-          'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=1200&h=600&fit=crop',
-        ],
-      ],
-      massagem: [
-        // Massagem & Terapia (biz-9)
-        [
-          'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1519824145371-296894a0daa9?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=1200&h=600&fit=crop',
-        ],
-      ],
-      depilacao: [
-        // Depil Laser Center (biz-10)
-        [
-          'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1487412912498-0447578fcca8?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=1200&h=600&fit=crop',
-        ],
-      ],
-      maquiagem: [
-        // Makeup Pro Studio (biz-11)
-        [
-          'https://images.unsplash.com/photo-1487412912498-0447578fcca8?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1522337094846-8a818192de1f?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1596704017254-9b121068ec31?w=1200&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1583241800698-7f0c50c43810?w=1200&h=600&fit=crop',
-        ],
-      ],
+    // Se o estabelecimento tem galeria de fotos, usar ela
+    if (business.gallery && business.gallery.length > 0) {
+      return business.gallery
     }
 
-    // Get images based on business ID index within category
-    const businessIndex = mockBusinesses
-      .filter(b => b.category === business.category)
-      .findIndex(b => b.id === business.id)
-
-    const categoryGalleries = categoryImages[business.category]
-    if (categoryGalleries && businessIndex >= 0 && businessIndex < categoryGalleries.length) {
-      return categoryGalleries[businessIndex]
+    // Se tem imagem principal, usar como única imagem na galeria
+    if (business.image) {
+      return [business.image]
     }
 
-    return [business.image]
+    // Fallback para uma imagem placeholder
+    return ['https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1200&h=600&fit=crop']
   }
 
   const galleryImages = getGalleryImages()
@@ -190,6 +118,17 @@ export function EmpresaDetalhes() {
     setCurrentImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Carregando detalhes...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!business) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -206,18 +145,28 @@ export function EmpresaDetalhes() {
     )
   }
 
-  const getDayName = (dayOfWeek: number) => {
-    const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
-    return days[dayOfWeek]
+  const getDayName = (day: string) => {
+    const dayMap: Record<string, string> = {
+      'sunday': 'Domingo',
+      'monday': 'Segunda',
+      'tuesday': 'Terça',
+      'wednesday': 'Quarta',
+      'thursday': 'Quinta',
+      'friday': 'Sexta',
+      'saturday': 'Sábado'
+    }
+    return dayMap[day] || day
   }
 
   const getAvailableTimes = () => {
     if (!selectedDate) return []
 
     const dayOfWeek = selectedDate.getDay()
-    const hours = business.businessHours.find((h) => h.dayOfWeek === dayOfWeek)
+    const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    const todayString = dayMap[dayOfWeek]
+    const hours = business.businessHours.find((h) => h.day === todayString)
 
-    if (!hours || hours.isClosed) return []
+    if (!hours || !hours.isOpen) return []
 
     const times: string[] = []
     const [openHour] = hours.open.split(':').map(Number)
@@ -543,14 +492,14 @@ export function EmpresaDetalhes() {
                   <div className="space-y-2">
                     {business.businessHours.map((hours) => (
                       <div
-                        key={hours.dayOfWeek}
+                        key={hours.day}
                         className="flex items-center justify-between text-sm"
                       >
                         <span className="text-gray-400 font-medium">
-                          {getDayName(hours.dayOfWeek)}
+                          {getDayName(hours.day)}
                         </span>
-                        <span className={hours.isClosed ? 'text-red-400' : 'text-white'}>
-                          {hours.isClosed ? 'Fechado' : `${hours.open} - ${hours.close}`}
+                        <span className={!hours.isOpen ? 'text-red-400' : 'text-white'}>
+                          {!hours.isOpen ? 'Fechado' : `${hours.open} - ${hours.close}`}
                         </span>
                       </div>
                     ))}

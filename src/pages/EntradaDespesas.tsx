@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { theme, pageClasses } from '@/styles/theme'
 
 type TabType = 'entradas' | 'despesas'
 type StatusFilter = 'todos' | 'concluido' | 'agendado' | 'cancelado'
@@ -267,20 +268,21 @@ export function EntradaDespesas() {
   const margemLucro = receitaConfirmada > 0 ? (lucroLiquido / receitaConfirmada) * 100 : 0
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-gold to-yellow-600 bg-clip-text text-transparent mb-2">
-          Entrada/Despesas
-        </h1>
-        <p className="text-gray-400">
-          Gerencie suas entradas e despesas
-        </p>
-      </motion.div>
+    <div className={pageClasses.container()}>
+      <div className={pageClasses.content()}>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gold to-yellow-600 bg-clip-text text-transparent mb-2">
+            Entrada/Despesas
+          </h1>
+          <p className={theme.colors.text.secondary}>
+            Gerencie suas entradas e despesas
+          </p>
+        </motion.div>
 
       {/* Card de Resumo Geral */}
       <motion.div
@@ -297,7 +299,7 @@ export function EntradaDespesas() {
                   <TrendingUp className="w-6 h-6 text-emerald-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Receita Confirmada</p>
+                  <p className={`text-sm ${theme.colors.text.secondary}`}>Receita Confirmada</p>
                   <p className="text-2xl font-bold text-emerald-500">{formatCurrency(receitaConfirmada)}</p>
                 </div>
               </div>
@@ -306,7 +308,7 @@ export function EntradaDespesas() {
                   <TrendingDown className="w-6 h-6 text-red-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Despesas Totais</p>
+                  <p className={`text-sm ${theme.colors.text.secondary}`}>Despesas Totais</p>
                   <p className="text-2xl font-bold text-red-500">{formatCurrency(totalDespesasConfirmadas)}</p>
                 </div>
               </div>
@@ -318,14 +320,14 @@ export function EntradaDespesas() {
                   <DollarSign className={cn("w-6 h-6", lucroLiquido >= 0 ? "text-gold" : "text-red-500")} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Lucro Líquido</p>
+                  <p className={`text-sm ${theme.colors.text.secondary}`}>Lucro Líquido</p>
                   <p className={cn(
                     "text-2xl font-bold",
                     lucroLiquido >= 0 ? "text-gold" : "text-red-500"
                   )}>
                     {formatCurrency(lucroLiquido)}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className={`text-xs ${theme.colors.text.tertiary}`}>
                     Margem: {margemLucro.toFixed(1)}%
                   </p>
                 </div>
@@ -405,7 +407,7 @@ export function EntradaDespesas() {
               <Card className="bg-white/5 backdrop-blur-sm border-emerald-500/30 hover:border-emerald-500/50 transition-all">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-400">Receita Confirmada</p>
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary}`}>Receita Confirmada</p>
                   </div>
                   <CheckCircle className="w-5 h-5 text-emerald-500" />
                 </CardHeader>
@@ -413,7 +415,7 @@ export function EntradaDespesas() {
                   <div className="text-3xl font-bold text-emerald-500">
                     {formatCurrency(receitaConfirmada)}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className={`text-xs ${theme.colors.text.secondary} mt-1`}>
                     Serviços concluídos
                   </p>
                 </CardContent>
@@ -422,7 +424,7 @@ export function EntradaDespesas() {
               <Card className="bg-white/5 backdrop-blur-sm border-blue-500/30 hover:border-blue-500/50 transition-all">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-400">Projeção de Faturamento</p>
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary}`}>Projeção de Faturamento</p>
                   </div>
                   <Clock className="w-5 h-5 text-blue-500" />
                 </CardHeader>
@@ -430,7 +432,7 @@ export function EntradaDespesas() {
                   <div className="text-3xl font-bold text-blue-500">
                     {formatCurrency(projecaoFaturamento)}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className={`text-xs ${theme.colors.text.secondary} mt-1`}>
                     Agendamentos pendentes
                   </p>
                 </CardContent>
@@ -439,7 +441,7 @@ export function EntradaDespesas() {
               <Card className="bg-white/5 backdrop-blur-sm border-gold/30 hover:border-gold/50 transition-all">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-400">Total Previsto</p>
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary}`}>Total Previsto</p>
                   </div>
                   <DollarSign className="w-5 h-5 text-gold" />
                 </CardHeader>
@@ -447,7 +449,7 @@ export function EntradaDespesas() {
                   <div className="text-3xl font-bold text-gold">
                     {formatCurrency(receitaConfirmada + projecaoFaturamento)}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className={`text-xs ${theme.colors.text.secondary} mt-1`}>
                     Confirmado + Projeção
                   </p>
                 </CardContent>
@@ -461,8 +463,8 @@ export function EntradaDespesas() {
                 className={cn(
                   "px-4 py-2 rounded-lg font-medium transition-all",
                   statusFilter === 'todos'
-                    ? "bg-white/10 text-gray-300"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300"
+                    ? `bg-white/10 ${theme.colors.text.primary}`
+                    : `bg-white/5 ${theme.colors.text.secondary} hover:bg-white/10 hover:text-white`
                 )}
               >
                 Todos
@@ -473,7 +475,7 @@ export function EntradaDespesas() {
                   "px-4 py-2 rounded-lg font-medium transition-all",
                   statusFilter === 'concluido'
                     ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/30"
-                    : "bg-white/5 text-gray-400 hover:bg-emerald-500/10 hover:text-emerald-500"
+                    : `bg-white/5 ${theme.colors.text.secondary} hover:bg-emerald-500/10 hover:text-emerald-500`
                 )}
               >
                 Concluídos
@@ -484,7 +486,7 @@ export function EntradaDespesas() {
                   "px-4 py-2 rounded-lg font-medium transition-all",
                   statusFilter === 'agendado'
                     ? "bg-blue-500/20 text-blue-500 border border-blue-500/30"
-                    : "bg-white/5 text-gray-400 hover:bg-blue-500/10 hover:text-blue-500"
+                    : `bg-white/5 ${theme.colors.text.secondary} hover:bg-blue-500/10 hover:text-blue-500`
                 )}
               >
                 Agendados
@@ -495,7 +497,7 @@ export function EntradaDespesas() {
                   "px-4 py-2 rounded-lg font-medium transition-all",
                   statusFilter === 'cancelado'
                     ? "bg-red-500/20 text-red-500 border border-red-500/30"
-                    : "bg-white/5 text-gray-400 hover:bg-red-500/10 hover:text-red-500"
+                    : `bg-white/5 ${theme.colors.text.secondary} hover:bg-red-500/10 hover:text-red-500`
                 )}
               >
                 Cancelados
@@ -507,7 +509,7 @@ export function EntradaDespesas() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gold" />
-                  <h3 className="text-lg font-semibold text-gray-300">
+                  <h3 className={`text-lg font-semibold ${theme.colors.text.primary}`}>
                     Agendamentos ({agendamentosFiltrados.length})
                   </h3>
                 </div>
@@ -531,17 +533,17 @@ export function EntradaDespesas() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-1 flex-wrap">
-                                <h4 className="font-semibold text-white">{agendamento.clienteNome}</h4>
+                                <h4 className={`font-semibold ${theme.colors.text.primary}`}>{agendamento.clienteNome}</h4>
                                 {getStatusBadge(agendamento.status)}
                                 {getPaymentBadge(agendamento.professionalPayment)}
                               </div>
-                              <p className="text-sm text-gray-400">{agendamento.servico}</p>
+                              <p className={`text-sm ${theme.colors.text.secondary}`}>{agendamento.servico}</p>
                               <div className="flex items-center gap-3 mt-1 flex-wrap">
-                                <p className="text-xs text-gray-500">
+                                <p className={`text-xs ${theme.colors.text.tertiary}`}>
                                   {formatDate(agendamento.data)} às {agendamento.hora}
                                 </p>
-                                <span className="text-xs text-gray-500">•</span>
-                                <p className="text-xs text-gray-500">{agendamento.profissional}</p>
+                                <span className={`text-xs ${theme.colors.text.tertiary}`}>•</span>
+                                <p className={`text-xs ${theme.colors.text.tertiary}`}>{agendamento.profissional}</p>
                               </div>
                             </div>
                           </div>
@@ -554,7 +556,7 @@ export function EntradaDespesas() {
                             )}>
                               {formatCurrency(entradaEstabelecimento)}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                               Total: {formatCurrency(agendamento.valor)}
                             </p>
                           </div>
@@ -563,8 +565,8 @@ export function EntradaDespesas() {
                     })
                   ) : (
                     <div className="text-center py-12">
-                      <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-400">Nenhum agendamento encontrado</p>
+                      <Calendar className={`w-16 h-16 ${theme.colors.text.tertiary} mx-auto mb-4`} />
+                      <p className={theme.colors.text.secondary}>Nenhum agendamento encontrado</p>
                     </div>
                   )}
                 </div>
@@ -578,7 +580,7 @@ export function EntradaDespesas() {
               <Card className="bg-white/5 backdrop-blur-sm border-red-500/30 hover:border-red-500/50 transition-all">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-400">Despesas com Profissionais</p>
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary}`}>Despesas com Profissionais</p>
                   </div>
                   <User className="w-5 h-5 text-red-500" />
                 </CardHeader>
@@ -586,7 +588,7 @@ export function EntradaDespesas() {
                   <div className="text-3xl font-bold text-red-500">
                     {formatCurrency(despesaProfissionaisConfirmada)}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className={`text-xs ${theme.colors.text.secondary} mt-1`}>
                     Comissões pagas
                   </p>
                 </CardContent>
@@ -595,7 +597,7 @@ export function EntradaDespesas() {
               <Card className="bg-white/5 backdrop-blur-sm border-orange-500/30 hover:border-orange-500/50 transition-all">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-400">Despesas Fixas</p>
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary}`}>Despesas Fixas</p>
                   </div>
                   <DollarSign className="w-5 h-5 text-orange-500" />
                 </CardHeader>
@@ -603,7 +605,7 @@ export function EntradaDespesas() {
                   <div className="text-3xl font-bold text-orange-500">
                     {formatCurrency(despesasManuaisTotal + salariosFixosTotal)}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className={`text-xs ${theme.colors.text.secondary} mt-1`}>
                     Salários + Outras despesas
                   </p>
                 </CardContent>
@@ -612,7 +614,7 @@ export function EntradaDespesas() {
               <Card className="bg-white/5 backdrop-blur-sm border-red-600/30 hover:border-red-600/50 transition-all">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-400">Total de Despesas</p>
+                    <p className={`text-sm font-medium ${theme.colors.text.secondary}`}>Total de Despesas</p>
                   </div>
                   <TrendingDown className="w-5 h-5 text-red-600" />
                 </CardHeader>
@@ -620,7 +622,7 @@ export function EntradaDespesas() {
                   <div className="text-3xl font-bold text-red-600">
                     {formatCurrency(totalDespesasConfirmadas)}
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className={`text-xs ${theme.colors.text.secondary} mt-1`}>
                     Total confirmado
                   </p>
                 </CardContent>
@@ -643,7 +645,7 @@ export function EntradaDespesas() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-gold" />
-                  <h3 className="text-lg font-semibold text-gray-300">
+                  <h3 className={`text-lg font-semibold ${theme.colors.text.primary}`}>
                     Despesas Fixas ({mockDespesasManuais.length + 1})
                   </h3>
                 </div>
@@ -657,9 +659,9 @@ export function EntradaDespesas() {
                     className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10"
                   >
                     <div className="flex-1">
-                      <h4 className="font-semibold text-white mb-1">Salários Fixos</h4>
-                      <p className="text-sm text-gray-400">Ana Silva - Profissional</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <h4 className={`font-semibold ${theme.colors.text.primary} mb-1`}>Salários Fixos</h4>
+                      <p className={`text-sm ${theme.colors.text.secondary}`}>Ana Silva - Profissional</p>
+                      <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                         Mensal • Pagamento Fixo
                       </p>
                     </div>
@@ -679,9 +681,9 @@ export function EntradaDespesas() {
                       className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10"
                     >
                       <div className="flex-1">
-                        <h4 className="font-semibold text-white mb-1">{despesa.descricao}</h4>
-                        <p className="text-sm text-gray-400">{despesa.categoria}</p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <h4 className={`font-semibold ${theme.colors.text.primary} mb-1`}>{despesa.descricao}</h4>
+                        <p className={`text-sm ${theme.colors.text.secondary}`}>{despesa.categoria}</p>
+                        <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                           {formatDate(despesa.data)}
                         </p>
                       </div>
@@ -701,7 +703,7 @@ export function EntradaDespesas() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <User className="w-5 h-5 text-gold" />
-                  <h3 className="text-lg font-semibold text-gray-300">
+                  <h3 className={`text-lg font-semibold ${theme.colors.text.primary}`}>
                     Comissões de Profissionais ({mockAgendamentos.filter(a => a.status === 'concluido' && a.professionalPayment.type === 'percentage').length})
                   </h3>
                 </div>
@@ -722,11 +724,11 @@ export function EntradaDespesas() {
                         >
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
-                              <h4 className="font-semibold text-white">{agendamento.profissional}</h4>
+                              <h4 className={`font-semibold ${theme.colors.text.primary}`}>{agendamento.profissional}</h4>
                               {getPaymentBadge(agendamento.professionalPayment)}
                             </div>
-                            <p className="text-sm text-gray-400">{agendamento.servico} - {agendamento.clienteNome}</p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className={`text-sm ${theme.colors.text.secondary}`}>{agendamento.servico} - {agendamento.clienteNome}</p>
+                            <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                               {formatDate(agendamento.data)} • Total: {formatCurrency(agendamento.valor)}
                             </p>
                           </div>
@@ -766,20 +768,20 @@ export function EntradaDespesas() {
               <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl border border-white/10 shadow-2xl max-w-md w-full">
                 <div className="flex items-center justify-between p-6 border-b border-white/10">
                   <div>
-                    <h3 className="text-2xl font-bold text-white">Adicionar Despesa</h3>
-                    <p className="text-sm text-gray-400 mt-1">Nova despesa manual</p>
+                    <h3 className={`text-2xl font-bold ${theme.colors.text.primary}`}>Adicionar Despesa</h3>
+                    <p className={`text-sm ${theme.colors.text.secondary} mt-1`}>Nova despesa manual</p>
                   </div>
                   <button
                     onClick={() => setIsAddDespesaModalOpen(false)}
                     className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-400" />
+                    <X className={`w-5 h-5 ${theme.colors.text.secondary}`} />
                   </button>
                 </div>
 
                 <div className="p-6 space-y-4">
                   <div>
-                    <Label htmlFor="descricao" className="text-gray-300">Descrição</Label>
+                    <Label htmlFor="descricao" className={theme.colors.text.primary}>Descrição</Label>
                     <Input
                       id="descricao"
                       value={despesaForm.descricao}
@@ -790,7 +792,7 @@ export function EntradaDespesas() {
                   </div>
 
                   <div>
-                    <Label htmlFor="valor" className="text-gray-300">Valor (R$)</Label>
+                    <Label htmlFor="valor" className={theme.colors.text.primary}>Valor (R$)</Label>
                     <Input
                       id="valor"
                       type="number"
@@ -803,7 +805,7 @@ export function EntradaDespesas() {
                   </div>
 
                   <div>
-                    <Label htmlFor="categoria" className="text-gray-300">Categoria</Label>
+                    <Label htmlFor="categoria" className={theme.colors.text.primary}>Categoria</Label>
                     <Input
                       id="categoria"
                       value={despesaForm.categoria}
@@ -814,7 +816,7 @@ export function EntradaDespesas() {
                   </div>
 
                   <div>
-                    <Label htmlFor="data" className="text-gray-300">Data</Label>
+                    <Label htmlFor="data" className={theme.colors.text.primary}>Data</Label>
                     <Input
                       id="data"
                       type="date"
@@ -846,6 +848,7 @@ export function EntradaDespesas() {
           </>
         )}
       </AnimatePresence>
+      </div>
     </div>
   )
 }

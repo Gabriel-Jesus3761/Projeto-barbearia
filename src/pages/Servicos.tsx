@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select'
 import { mockServices } from '@/data/mockData'
 import { formatCurrency } from '@/lib/utils'
+import { theme, pageClasses } from '@/styles/theme'
 
 const categoryLabels: Record<string, string> = {
   hair: 'Cabelo',
@@ -318,7 +319,7 @@ export function Servicos() {
   })
 
   return (
-    <div>
+    <div className={pageClasses.container()}>
       <Header
         title="Serviços"
         subtitle="Gerencie seu catálogo de serviços"
@@ -327,15 +328,15 @@ export function Servicos() {
         onSearchChange={setSearchQuery}
       />
 
-      <div className="p-4 md:p-8">
+      <div className={pageClasses.content()}>
         {/* Actions Bar */}
         {!selectionMode ? (
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
             <div>
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+              <h2 className={`text-lg md:text-xl font-semibold ${theme.colors.text.primary}`}>
                 {filteredServices.length} Serviços {searchQuery && `(${mockServices.length} total)`}
               </h2>
-              <p className="text-xs md:text-sm text-gray-500 mt-1">
+              <p className={`text-xs md:text-sm ${theme.colors.text.secondary} mt-1`}>
                 {searchQuery ? `Resultados para "${searchQuery}"` : 'Organize e atualize seus serviços'}
               </p>
             </div>
@@ -380,12 +381,12 @@ export function Servicos() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 bg-gray-100 p-4 rounded-lg border-2 border-gray-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 bg-white/10 p-4 rounded-lg border-2 border-white/20">
             <div>
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+              <h2 className={`text-lg md:text-xl font-semibold ${theme.colors.text.primary}`}>
                 {selectedServices.size} Serviço(s) Selecionado(s)
               </h2>
-              <p className="text-xs md:text-sm text-gray-500 mt-1">
+              <p className={`text-xs md:text-sm ${theme.colors.text.secondary} mt-1`}>
                 Selecione os serviços que deseja remover
               </p>
             </div>
@@ -432,11 +433,11 @@ export function Servicos() {
         >
           {filteredServices.length === 0 ? (
             <div className="col-span-full text-center py-12">
-              <Scissors className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              <Scissors className={`w-16 h-16 mx-auto ${theme.colors.text.tertiary} mb-4`} />
+              <h3 className={`text-lg font-semibold ${theme.colors.text.secondary} mb-2`}>
                 Nenhum serviço encontrado
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className={`text-sm ${theme.colors.text.tertiary}`}>
                 {searchQuery
                   ? `Não encontramos serviços que correspondam a "${searchQuery}"`
                   : 'Adicione serviços para começar'
@@ -453,7 +454,7 @@ export function Servicos() {
               whileHover={{ y: -5 }}
             >
               <Card
-                className={`h-full hover:shadow-xl transition-all duration-300 group border border-black relative ${
+                className={`h-full ${theme.colors.card.base} hover:shadow-xl transition-all duration-300 group border-l-4 border-l-gold relative ${
                   selectionMode && selectedServices.has(service.id) ? 'ring-2 ring-gold bg-gold/5' : ''
                 } ${disabledServices.has(service.id) ? 'opacity-50 grayscale' : ''} ${
                   selectionMode ? 'cursor-pointer' : ''
@@ -488,28 +489,28 @@ export function Servicos() {
                       </div>
                     )}
                   </div>
-                  <CardTitle className="text-lg group-hover:text-gold transition-colors">
+                  <CardTitle className={`text-lg ${theme.colors.text.primary} group-hover:text-gold transition-colors`}>
                     {service.name}
                   </CardTitle>
                 </CardHeader>
 
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  <p className={`text-sm ${theme.colors.text.secondary} mb-4 line-clamp-2`}>
                     {service.description}
                   </p>
 
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-600">
+                      <span className={`flex items-center gap-2 ${theme.colors.text.secondary}`}>
                         <Clock className="w-4 h-4 text-gold" />
                         Duração
                       </span>
-                      <span className="font-semibold text-gray-900">
+                      <span className={`font-semibold ${theme.colors.text.primary}`}>
                         {service.duration} min
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-600">
+                      <span className={`flex items-center gap-2 ${theme.colors.text.secondary}`}>
                         <DollarSign className="w-4 h-4 text-gold" />
                         Preço
                       </span>
@@ -535,7 +536,7 @@ export function Servicos() {
                   </div>
 
                   {!selectionMode && (
-                    <div className="space-y-2 pt-4 border-t border-gray-100">
+                    <div className={`space-y-2 pt-4 border-t ${theme.colors.border.light}`}>
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -708,20 +709,20 @@ export function Servicos() {
           </form>
 
           {/* Lista de categorias existentes */}
-          <div className="border-t pt-4">
-            <h3 className="text-sm font-semibold mb-3">Categorias Existentes</h3>
+          <div className={`border-t ${theme.colors.border.light} pt-4`}>
+            <h3 className={`text-sm font-semibold ${theme.colors.text.primary} mb-3`}>Categorias Existentes</h3>
             <div className="space-y-2 max-h-[300px] overflow-y-auto">
               {categories.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">
+                <p className={`text-sm ${theme.colors.text.secondary} text-center py-4`}>
                   Nenhuma categoria cadastrada
                 </p>
               ) : (
                 categories.map((category) => (
                   <div
                     key={category.id}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-gray-50 hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
                   >
-                    <span className="font-medium">{category.label}</span>
+                    <span className={`font-medium ${theme.colors.text.primary}`}>{category.label}</span>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -759,10 +760,10 @@ export function Servicos() {
             <form onSubmit={handleSubmitPromotion}>
               <div className="grid gap-4 py-4">
                 {/* Informações do serviço */}
-                <div className="bg-gray-50 p-4 rounded-lg border">
-                  <h3 className="font-semibold text-sm mb-2">Serviço Selecionado</h3>
-                  <p className="text-lg font-bold">{selectedServiceForPromotion.name}</p>
-                  <p className="text-sm text-gray-600 mt-1">
+                <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+                  <h3 className={`font-semibold text-sm ${theme.colors.text.primary} mb-2`}>Serviço Selecionado</h3>
+                  <p className={`text-lg font-bold ${theme.colors.text.primary}`}>{selectedServiceForPromotion.name}</p>
+                  <p className={`text-sm ${theme.colors.text.secondary} mt-1`}>
                     Valor Original: <span className="font-semibold text-gold">
                       {formatCurrency(selectedServiceForPromotion.price)}
                     </span>
@@ -784,7 +785,7 @@ export function Servicos() {
                     required
                   />
                   {promotionData.discount && (
-                    <p className="text-sm text-gray-600">
+                    <p className={`text-sm ${theme.colors.text.secondary}`}>
                       Valor com desconto: <span className="font-semibold text-green-600">
                         {formatCurrency(
                           selectedServiceForPromotion.price * (1 - parseFloat(promotionData.discount) / 100)
@@ -844,12 +845,12 @@ export function Servicos() {
                 </div>
 
                 {/* Status da promoção */}
-                <div className="flex items-center justify-between p-4 rounded-lg border bg-gray-50">
+                <div className="flex items-center justify-between p-4 rounded-lg border border-white/10 bg-white/5">
                   <div>
-                    <Label htmlFor="isActive" className="text-base font-semibold">
+                    <Label htmlFor="isActive" className={`text-base font-semibold ${theme.colors.text.primary}`}>
                       Status da Promoção
                     </Label>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className={`text-sm ${theme.colors.text.secondary} mt-1`}>
                       {promotionData.isActive ? 'Promoção ativa' : 'Promoção desativada'}
                     </p>
                   </div>
@@ -983,12 +984,12 @@ export function Servicos() {
               </div>
 
               {/* Status do cupom */}
-              <div className="flex items-center justify-between p-4 rounded-lg border bg-gray-50">
+              <div className="flex items-center justify-between p-4 rounded-lg border border-white/10 bg-white/5">
                 <div>
-                  <Label htmlFor="couponActive" className="text-base font-semibold">
+                  <Label htmlFor="couponActive" className={`text-base font-semibold ${theme.colors.text.primary}`}>
                     Status do Cupom
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className={`text-sm ${theme.colors.text.secondary} mt-1`}>
                     {couponData.isActive ? 'Cupom ativo' : 'Cupom desativado'}
                   </p>
                 </div>
@@ -1001,15 +1002,15 @@ export function Servicos() {
 
               {/* Serviços Vinculados */}
               <div className="grid gap-2">
-                <Label className="text-base font-semibold">Serviços Vinculados</Label>
-                <p className="text-sm text-gray-600 mb-2">
+                <Label className={`text-base font-semibold ${theme.colors.text.primary}`}>Serviços Vinculados</Label>
+                <p className={`text-sm ${theme.colors.text.secondary} mb-2`}>
                   Selecione os serviços onde este cupom poderá ser utilizado
                 </p>
-                <div className="border rounded-lg p-4 max-h-[250px] overflow-y-auto space-y-2">
+                <div className="border border-white/10 rounded-lg p-4 max-h-[250px] overflow-y-auto space-y-2">
                   {mockServices.map((service) => (
                     <div
                       key={service.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50 hover:bg-gray-100 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
                     >
                       <input
                         type="checkbox"
@@ -1022,8 +1023,8 @@ export function Servicos() {
                         htmlFor={`coupon-service-${service.id}`}
                         className="flex-1 cursor-pointer"
                       >
-                        <span className="font-medium">{service.name}</span>
-                        <span className="text-sm text-gray-600 ml-2">
+                        <span className={`font-medium ${theme.colors.text.primary}`}>{service.name}</span>
+                        <span className={`text-sm ${theme.colors.text.secondary} ml-2`}>
                           ({formatCurrency(service.price)})
                         </span>
                       </label>
@@ -1033,7 +1034,7 @@ export function Servicos() {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className={`text-xs ${theme.colors.text.tertiary} mt-2`}>
                   {selectedCouponServices.size} serviço(s) selecionado(s)
                 </p>
               </div>
@@ -1089,9 +1090,9 @@ export function Servicos() {
             <div className="space-y-3">
               {coupons.length === 0 ? (
                 <div className="text-center py-8">
-                  <Ticket className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-sm text-gray-500">Nenhum cupom cadastrado</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <Ticket className={`w-12 h-12 mx-auto ${theme.colors.text.tertiary} mb-3`} />
+                  <p className={`text-sm ${theme.colors.text.secondary}`}>Nenhum cupom cadastrado</p>
+                  <p className={`text-xs ${theme.colors.text.tertiary} mt-1`}>
                     Crie seu primeiro cupom para começar
                   </p>
                 </div>
@@ -1099,12 +1100,12 @@ export function Servicos() {
                 coupons.map((coupon) => (
                   <div
                     key={coupon.id}
-                    className="border rounded-lg p-4 hover:shadow-md transition-all"
+                    className="border border-white/10 rounded-lg p-4 bg-white/5 hover:shadow-md transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-bold text-lg text-purple-600">{coupon.code}</h3>
+                          <h3 className="font-bold text-lg text-purple-400">{coupon.code}</h3>
                           <Badge
                             className={
                               coupon.isActive
@@ -1117,7 +1118,7 @@ export function Servicos() {
                             </span>
                           </Badge>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                        <div className={`grid grid-cols-2 gap-2 text-sm ${theme.colors.text.secondary}`}>
                           <div>
                             <span className="font-semibold">Desconto:</span> {coupon.discount}%
                           </div>
@@ -1137,7 +1138,7 @@ export function Servicos() {
                     </div>
 
                     {/* Período de validade */}
-                    <div className="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded">
+                    <div className={`text-xs ${theme.colors.text.tertiary} mb-3 bg-white/5 p-2 rounded`}>
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         <span>
@@ -1149,8 +1150,8 @@ export function Servicos() {
                     </div>
 
                     {/* Serviços vinculados */}
-                    <div className="border-t pt-3">
-                      <p className="text-xs font-semibold text-gray-700 mb-2">
+                    <div className={`border-t ${theme.colors.border.light} pt-3`}>
+                      <p className={`text-xs font-semibold ${theme.colors.text.primary} mb-2`}>
                         Serviços Vinculados ({coupon.serviceIds.length})
                       </p>
                       <div className="flex flex-wrap gap-1">

@@ -5,6 +5,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { formatDate } from '@/lib/utils'
+import { theme } from '@/styles/theme'
 
 export type DateRange = { from?: Date; to?: Date }
 
@@ -32,7 +33,7 @@ export function DateRangePicker({
       open={open}
       onOpenChange={setOpen}
       content={
-        <div className="p-0">
+        <div className={`p-0 ${theme.colors.card.base} rounded-lg border ${theme.colors.border.light}`}>
           <Calendar
             mode="range"
             selected={dateRange}
@@ -43,6 +44,7 @@ export function DateRangePicker({
               }
             }}
             numberOfMonths={1}
+            className={theme.colors.text.primary}
           />
         </div>
       }
@@ -50,8 +52,8 @@ export function DateRangePicker({
       <Button
         variant="outline"
         className={cn(
-          "justify-start text-left font-normal",
-          !dateRange.from && "text-muted-foreground",
+          `justify-start text-left font-normal ${theme.components.input.base} hover:bg-white/10`,
+          !dateRange.from && theme.colors.text.tertiary,
           className
         )}
       >
