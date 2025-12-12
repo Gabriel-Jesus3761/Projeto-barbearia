@@ -101,11 +101,28 @@ export function EmpresaDetalhes() {
 
   const galleryImages = getGalleryImages()
 
-  // Auto-advance carousel
+  // Pré-carregar todas as imagens ao montar o componente
+  useEffect(() => {
+    galleryImages.forEach((src) => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [galleryImages])
+
+  // Pré-carregar a próxima imagem antes da transição
+  useEffect(() => {
+    if (galleryImages.length <= 1) return
+
+    const nextIndex = (currentImageIndex + 1) % galleryImages.length
+    const img = new Image()
+    img.src = galleryImages[nextIndex]
+  }, [currentImageIndex, galleryImages])
+
+  // Auto-advance carousel every 7 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length)
-    }, 5000) // Change image every 5 seconds
+    }, 7000)
 
     return () => clearInterval(interval)
   }, [galleryImages.length])
@@ -217,13 +234,16 @@ export function EmpresaDetalhes() {
               className="relative rounded-2xl h-80 overflow-hidden group"
             >
               {/* Images with AnimatePresence for smooth transitions */}
-              <AnimatePresence mode="wait">
+              <AnimatePresence initial={false}>
                 <motion.div
                   key={currentImageIndex}
-                  initial={{ opacity: 0, x: 100 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.5 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 1.0,
+                    ease: [0.43, 0.13, 0.23, 0.96]
+                  }}
                   className="absolute inset-0"
                 >
                   <img
@@ -414,7 +434,6 @@ export function EmpresaDetalhes() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="sticky top-24"
             >
               <Card className="bg-white/5 backdrop-blur-sm border-2 border-gold/50 shadow-2xl shadow-gold/10">
                 <CardHeader>

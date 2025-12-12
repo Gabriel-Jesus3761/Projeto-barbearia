@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Calendar,
@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { getBusinessById, type Business } from '@/services/businessService'
 
 interface NavItem {
   to?: string
@@ -58,11 +59,33 @@ interface SidebarProps {
 export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOpen }: SidebarProps) {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [isHovered, setIsHovered] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [business, setBusiness] = useState<Business | null>(null)
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({
     'Painéis de gestão': true // Dashboard submenu expanded by default
   })
+  const [imageLoadError, setImageLoadError] = useState(false)
+
+  // Carregar dados do estabelecimento
+  useEffect(() => {
+    const loadBusiness = async () => {
+      const businessId = localStorage.getItem('selected_business_id')
+      if (businessId) {
+        try {
+          const businessData = await getBusinessById(businessId)
+          if (businessData) {
+            setBusiness(businessData)
+          }
+        } catch (error) {
+          console.error('Erro ao carregar estabelecimento:', error)
+        }
+      }
+    }
+
+    loadBusiness()
+  }, [])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -91,11 +114,53 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
     }))
   }
 
+  // Get business ID for routes
+  const businessId = business?.id || localStorage.getItem('selected_business_id') || ''
+
+  // Update routes with business ID
+  const getRoutePath = (basePath: string) => {
+    if (!businessId) return basePath
+    // Se a rota já tem o businessId, retorna como está
+    if (basePath.includes(businessId)) return basePath
+    // Adiciona o businessId antes do path
+    return `/${businessId}${basePath}`
+  }
+
+  // Check if any child route is active
+  const isParentActive = (item: NavItem) => {
+    if (!item.children) return false
+    return item.children.some(child => {
+      const routePath = child.to ? getRoutePath(child.to) : ''
+      return routePath === location.pathname
+    })
+  }
+
   // Handle logout - volta para seleção de estabelecimento
   const handleLogout = () => {
     localStorage.removeItem('selected_business_id')
     navigate('/selecionar-empresa')
   }
+
+  // Função para pegar iniciais do nome
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  // Melhorar qualidade da imagem do Google
+  const getHighQualityImageUrl = (url: string | undefined) => {
+    if (!url) return url
+    if (url.includes('googleusercontent.com') && url.includes('=s96-c')) {
+      return url.replace('=s96-c', '=s400-c')
+    }
+    return url
+  }
+
+  const displayAvatar = user?.avatar ? getHighQualityImageUrl(user.avatar) : undefined
 
   return (
     <>
@@ -138,11 +203,19 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
               !isMobile && !shouldExpand && "w-auto"
             )}>
               <div className="w-12 h-12 bg-gold rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                <img
-                  src="/assets/images/Logo.png"
-                  alt="Logo BarberPro"
-                  className="w-full h-full object-cover scale-110"
-                />
+                {business?.image ? (
+                  <img
+                    src={business.image}
+                    alt={business.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src="/assets/images/Logo.png"
+                    alt="Logo"
+                    className="w-full h-full object-cover scale-110"
+                  />
+                )}
               </div>
               <AnimatePresence>
                 {(shouldExpand || isMobileOpen) && (
@@ -151,10 +224,11 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
+                    className="flex-1 min-w-0"
                   >
-                    <h1 className="text-xl font-bold text-gold whitespace-nowrap">BarberPro</h1>
-                    <p className="text-xs text-gray-400 whitespace-nowrap">Gestão Profissional</p>
+                    <h1 className="text-lg font-bold text-gold leading-tight line-clamp-2">
+                      {business?.name || 'BarberPro'}
+                    </h1>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -203,7 +277,10 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
                       onClick={() => toggleSubmenu(item.label)}
                       className={cn(
                         "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-                        "hover:bg-gold/10 text-gray-300 hover:text-white",
+                        "hover:bg-gold/10",
+                        isParentActive(item)
+                          ? "bg-gold/20 text-white border border-gold/30"
+                          : "text-gray-300 hover:text-white",
                         !isMobile && !shouldExpand && "justify-center"
                       )}
                       title={!isMobile && !shouldExpand ? item.label : undefined}
@@ -249,7 +326,8 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
                           {item.children.map((child) => (
                             <li key={child.to}>
                               <NavLink
-                                to={child.to!}
+                                to={getRoutePath(child.to!)}
+                                end
                                 onClick={handleLinkClick}
                                 className={({ isActive }) =>
                                   cn(
@@ -275,7 +353,8 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
                 ) : (
                   /* Regular item without children */
                   <NavLink
-                    to={item.to!}
+                    to={getRoutePath(item.to!)}
+                    end
                     onClick={handleLinkClick}
                     className={({ isActive }) =>
                       cn(
@@ -317,9 +396,19 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
             "flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-800/50",
             !isMobile && !shouldExpand && "justify-center px-2"
           )}>
-            <div className="w-10 h-10 bg-gold rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
+            {displayAvatar && !imageLoadError ? (
+              <img
+                src={displayAvatar}
+                alt={user?.name || 'Usuário'}
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                onError={() => setImageLoadError(true)}
+                onLoad={() => setImageLoadError(false)}
+              />
+            ) : (
+              <div className="w-10 h-10 bg-gradient-to-br from-gold to-yellow-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                {user?.name ? getInitials(user.name) : 'U'}
+              </div>
+            )}
             <AnimatePresence>
               {(shouldExpand || isMobileOpen) && (
                 <motion.div

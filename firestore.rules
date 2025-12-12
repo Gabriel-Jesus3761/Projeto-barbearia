@@ -150,8 +150,8 @@ service cloud.firestore {
     // COLEÇÃO: BUSINESSES (Barbearias)
     // ============================================
     match /businesses/{businessId} {
-      // Leitura: público (listagem de barbearias) ou donos
-      allow read: if isAuthenticated();
+      // Leitura: PÚBLICO (permite visitantes anônimos verem estabelecimentos)
+      allow read: if true;
 
       // Criação: apenas donos (verificar role owner no users)
       allow create: if isAuthenticated()
@@ -327,6 +327,32 @@ service cloud.firestore {
     match /_security_logs/{logId} {
       // Leitura/Escrita: apenas via Cloud Function
       allow read, write: if false;
+    }
+
+    // ============================================
+    // COLEÇÃO: VISITORS (Visitantes Anônimos)
+    // ============================================
+    match /visitors/{visitorId} {
+      // Leitura: PÚBLICO (permite tracking de visitantes)
+      allow read: if true;
+
+      // Criação: PÚBLICO (permite criar registro de visitante)
+      allow create: if request.resource.data.visitorId == visitorId
+        && request.resource.data.visitCount >= 1
+        && request.resource.data.pagesVisited is list
+        && isValidTimestamp(request.resource.data.firstVisit)
+        && isValidTimestamp(request.resource.data.lastVisit);
+
+      // Atualização: PÚBLICO (permite atualizar contador de visitas)
+      // Validações: não pode alterar firstVisit, visitorId
+      allow update: if request.resource.data.visitorId == resource.data.visitorId
+        && request.resource.data.firstVisit == resource.data.firstVisit
+        && request.resource.data.visitCount > resource.data.visitCount
+        && request.resource.data.pagesVisited is list
+        && isValidTimestamp(request.resource.data.lastVisit);
+
+      // Deleção: não permitida
+      allow delete: if false;
     }
 
     // ============================================

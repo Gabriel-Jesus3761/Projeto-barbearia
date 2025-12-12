@@ -6,144 +6,63 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { mockBusinesses, businessCategories } from '@/data/mockData'
+import { businessCategories } from '@/data/mockData'
 import { BusinessCategory } from '@/types'
 import { getBusinessesByCategory, type Business } from '@/services/businessService'
 
-// Gallery images based on category and business ID
-const getGalleryImages = (category: string, businessId: string) => {
-  const categoryImages: Record<string, string[][]> = {
-    barbearia: [
-      // BarberPro Premium (biz-1)
-      [
-        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&h=600&fit=crop',
-      ],
-      // Barbearia Clássica (biz-2)
-      [
-        'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1511511450040-677116ff389e?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1528920304568-7aa06b3dda8b?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1612637612912-aab973f0f939?w=800&h=600&fit=crop',
-      ],
-      // The Barber Shop (biz-3)
-      [
-        'https://images.unsplash.com/photo-1493256338651-d82f7acb2b38?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1521490878887-76e391a7b9b2?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1542345812-d98b5cd6cf98?w=800&h=600&fit=crop',
-      ],
-    ],
-    salao: [
-      // Salão Estilo & Charme (biz-4)
-      [
-        'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=800&h=600&fit=crop',
-      ],
-      // Beleza Pura (biz-5)
-      [
-        'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1487412912498-0447578fcca8?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1595475884562-073c30d45670?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=800&h=600&fit=crop',
-      ],
-    ],
-    estetica: [
-      // Estética Renove (biz-6)
-      [
-        'https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=800&h=600&fit=crop',
-      ],
-    ],
-    spa: [
-      // Spa Serenity (biz-7)
-      [
-        'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1552693673-1bf958298935?w=800&h=600&fit=crop',
-      ],
-    ],
-    manicure: [
-      // Nails Art Studio (biz-8)
-      [
-        'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=800&h=600&fit=crop',
-      ],
-    ],
-    massagem: [
-      // Massagem & Terapia (biz-9)
-      [
-        'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1519824145371-296894a0daa9?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=800&h=600&fit=crop',
-      ],
-    ],
-    depilacao: [
-      // Depil Laser Center (biz-10)
-      [
-        'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1487412912498-0447578fcca8?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=800&h=600&fit=crop',
-      ],
-    ],
-    maquiagem: [
-      // Makeup Pro Studio (biz-11)
-      [
-        'https://images.unsplash.com/photo-1487412912498-0447578fcca8?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1522337094846-8a818192de1f?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1596704017254-9b121068ec31?w=800&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1583241800698-7f0c50c43810?w=800&h=600&fit=crop',
-      ],
-    ],
-  }
-
-  // Get images based on business ID index within category
-  const businessIndex = mockBusinesses
-    .filter(b => b.category === category)
-    .findIndex(b => b.id === businessId)
-
-  const categoryGalleries = categoryImages[category]
-  if (categoryGalleries && businessIndex >= 0 && businessIndex < categoryGalleries.length) {
-    return categoryGalleries[businessIndex]
-  }
-
-  return []
-}
-
 // Business Card Carousel Component
-function BusinessCardCarousel({ businessId, businessName, category }: { businessId: string; businessName: string; category: string }) {
+function BusinessCardCarousel({ business }: { business: Business }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const galleryImages = getGalleryImages(category, businessId)
 
-  // Auto-advance carousel every 4 seconds
+  // Usar imagens reais do estabelecimento quando disponíveis
+  const realImages: string[] = []
+
+  // Adicionar imagem principal se existir
+  if (business.image) {
+    realImages.push(business.image)
+  }
+
+  // Adicionar cover image se existir e for diferente da principal
+  if (business.coverImage && business.coverImage !== business.image) {
+    realImages.push(business.coverImage)
+  }
+
+  // Adicionar galeria se existir
+  if (business.gallery && business.gallery.length > 0) {
+    business.gallery.forEach(img => {
+      if (img && !realImages.includes(img)) {
+        realImages.push(img)
+      }
+    })
+  }
+
+  // Usar apenas imagens reais configuradas
+  const galleryImages = realImages
+
+  // Pré-carregar todas as imagens ao montar o componente
+  useEffect(() => {
+    galleryImages.forEach((src) => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [galleryImages])
+
+  // Pré-carregar a próxima imagem antes da transição
+  useEffect(() => {
+    if (galleryImages.length <= 1) return
+
+    const nextIndex = (currentImageIndex + 1) % galleryImages.length
+    const img = new Image()
+    img.src = galleryImages[nextIndex]
+  }, [currentImageIndex, galleryImages])
+
+  // Auto-advance carousel every 7 seconds
   useEffect(() => {
     if (galleryImages.length <= 1) return
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length)
-    }, 4000)
+    }, 7000)
 
     return () => clearInterval(interval)
   }, [galleryImages.length])
@@ -169,18 +88,21 @@ function BusinessCardCarousel({ businessId, businessName, category }: { business
   return (
     <div className="relative w-full h-full group/carousel">
       {/* Images with AnimatePresence */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence initial={false}>
         <motion.div
-          key={`${businessId}-${currentImageIndex}`}
+          key={`${business.id}-${currentImageIndex}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{
+            duration: 1.0,
+            ease: [0.43, 0.13, 0.23, 0.96]
+          }}
           className="absolute inset-0"
         >
           <img
             src={galleryImages[currentImageIndex]}
-            alt={`${businessName} - Foto ${currentImageIndex + 1}`}
+            alt={`${business.name} - Foto ${currentImageIndex + 1}`}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -267,13 +189,13 @@ export function EmpresasPorCategoria() {
           const realBusinesses = await getBusinessesByCategory(businessCategory)
           setBusinesses(realBusinesses)
         } else {
-          // Fallback para mock se categoria não mapeada
-          setBusinesses(mockBusinesses.filter((business) => business.category === categoryId))
+          // Categoria não mapeada, lista vazia
+          setBusinesses([])
         }
       } catch (error) {
         console.error('Erro ao carregar estabelecimentos:', error)
-        // Fallback para mock em caso de erro
-        setBusinesses(mockBusinesses.filter((business) => business.category === categoryId))
+        // Em caso de erro, lista vazia
+        setBusinesses([])
       } finally {
         setIsLoading(false)
       }
@@ -519,9 +441,7 @@ export function EmpresasPorCategoria() {
                     {/* Image Carousel */}
                     <div className="relative h-56 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
                       <BusinessCardCarousel
-                        businessId={business.id}
-                        businessName={business.name}
-                        category={business.category}
+                        business={business}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
 

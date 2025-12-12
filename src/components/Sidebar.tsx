@@ -27,6 +27,27 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  // Função para pegar iniciais do nome
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  // Melhorar qualidade da imagem do Google
+  const getHighQualityImageUrl = (url: string | undefined) => {
+    if (!url) return url
+    if (url.includes('googleusercontent.com') && url.includes('=s96-c')) {
+      return url.replace('=s96-c', '=s400-c')
+    }
+    return url
+  }
+
+  const displayAvatar = user?.avatar ? getHighQualityImageUrl(user.avatar) : undefined
+
   // Bloquear scroll quando sidebar estiver aberto
   useEffect(() => {
     if (isOpen) {
@@ -137,16 +158,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
             onClick={onClose}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
           />
 
           {/* Sidebar */}
           <motion.div
-            initial={{ x: -300 }}
+            initial={{ x: -320 }}
             animate={{ x: 0 }}
-            exit={{ x: -300 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            exit={{ x: -320 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="fixed left-0 top-0 h-full w-80 bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl border-r border-white/10 z-50 overflow-y-auto"
           >
             {/* Header */}
@@ -176,15 +198,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               {/* User Info */}
               {user && (
                 <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
-                  {user.avatar ? (
+                  {displayAvatar ? (
                     <img
-                      src={user.avatar}
+                      src={displayAvatar}
                       alt={user.name}
                       className="w-12 h-12 rounded-lg object-cover"
+                      onError={(e) => {
+                        // Se erro ao carregar, mostra as iniciais
+                        e.currentTarget.style.display = 'none'
+                      }}
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center text-white font-bold text-lg">
-                      {user.name.charAt(0).toUpperCase()}
+                      {getInitials(user.name)}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">

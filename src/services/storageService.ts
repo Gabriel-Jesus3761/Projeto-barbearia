@@ -81,6 +81,50 @@ export async function uploadCoverPhoto(userId: string, imageBase64: string): Pro
 }
 
 /**
+ * Baixa uma imagem de uma URL externa e faz upload para o Firebase Storage
+ * Útil para migrar fotos do Google/Facebook para o Firebase
+ * @param userId - ID do usuário
+ * @param imageUrl - URL da imagem externa (Google, Facebook, etc)
+ * @returns URL pública da imagem no Firebase Storage
+ */
+export async function downloadAndUploadProfilePhoto(userId: string, imageUrl: string): Promise<string> {
+  try {
+    console.log('📥 Baixando imagem de:', imageUrl);
+
+    // Usar um proxy CORS ou baixar via fetch
+    // Remover o parâmetro de tamanho pequeno e usar tamanho maior
+    const highQualityUrl = imageUrl.replace('=s96-c', '=s400-c');
+
+    const response = await fetch(highQualityUrl);
+
+    if (!response.ok) {
+      throw new Error(`Falha ao baixar imagem: ${response.status} ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    console.log('✅ Imagem baixada com sucesso, tamanho:', blob.size, 'bytes');
+
+    // Criar referência única para a imagem
+    const timestamp = Date.now();
+    const storageRef = ref(storage, `users/${userId}/profile/avatar_${timestamp}.jpg`);
+
+    // Upload da imagem
+    const snapshot = await uploadBytes(storageRef, blob, {
+      contentType: blob.type || 'image/jpeg',
+    });
+
+    // Obter URL pública
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    console.log('✅ Upload concluído! Nova URL:', downloadURL);
+    return downloadURL;
+  } catch (error) {
+    console.error('❌ Erro ao baixar e fazer upload da foto:', error);
+    throw error;
+  }
+}
+
+/**
  * Deleta uma imagem do Storage (usado ao atualizar foto)
  * @param imageUrl - URL completa da imagem no Firebase Storage
  */

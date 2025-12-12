@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import {
   getBusinessById,
@@ -83,6 +84,7 @@ export function ConfiguracoesEstabelecimento() {
   const [mainImage, setMainImage] = useState<string>('')
   const [galleryImages, setGalleryImages] = useState<string[]>([])
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [activeTab, setActiveTab] = useState<string>('info')
 
   // Carregar dados do estabelecimento
   useEffect(() => {
@@ -169,6 +171,43 @@ export function ConfiguracoesEstabelecimento() {
     const newBusinessHours = [...businessHours]
     newBusinessHours[index] = { ...newBusinessHours[index], [field]: value }
     setBusinessHours(newBusinessHours)
+  }
+
+  // Funções de validação por tab
+  const validateInfoTab = () => {
+    return !!(
+      formData.name?.trim() &&
+      formData.cnpj?.trim() &&
+      validateCNPJ(formData.cnpj) &&
+      formData.description?.trim() &&
+      formData.category
+    )
+  }
+
+  const validateContactTab = () => {
+    return !!(formData.phone?.trim())
+  }
+
+  const validateAddressTab = () => {
+    return !!(
+      formData.street?.trim() &&
+      formData.number?.trim() &&
+      formData.neighborhood?.trim() &&
+      formData.city?.trim() &&
+      formData.state?.trim() &&
+      formData.zipCode?.trim()
+    )
+  }
+
+  const getTabName = (tab: string) => {
+    const names: Record<string, string> = {
+      info: 'Informações Básicas',
+      photos: 'Fotos',
+      contact: 'Contato',
+      address: 'Endereço',
+      hours: 'Horários'
+    }
+    return names[tab] || tab
   }
 
   const handleMainImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -326,29 +365,32 @@ export function ConfiguracoesEstabelecimento() {
   const handleSave = async () => {
     if (!business) return
 
-    // Validações
-    if (!formData.name || !formData.cnpj || !formData.description || !formData.phone) {
+    // Validar todas as tabs e navegar para a primeira com erro
+    if (!validateInfoTab()) {
+      setActiveTab('info')
       toast({
-        title: 'Erro',
-        description: 'Preencha todos os campos obrigatórios',
+        title: 'Campos obrigatórios faltando',
+        description: `Por favor, complete a seção ${getTabName('info')}`,
         variant: 'destructive',
       })
       return
     }
 
-    if (!validateCNPJ(formData.cnpj)) {
+    if (!validateContactTab()) {
+      setActiveTab('contact')
       toast({
-        title: 'Erro',
-        description: 'CNPJ inválido',
+        title: 'Campos obrigatórios faltando',
+        description: `Por favor, complete a seção ${getTabName('contact')}`,
         variant: 'destructive',
       })
       return
     }
 
-    if (!formData.street || !formData.number || !formData.neighborhood || !formData.city || !formData.state || !formData.zipCode) {
+    if (!validateAddressTab()) {
+      setActiveTab('address')
       toast({
-        title: 'Erro',
-        description: 'Preencha todos os campos de endereço',
+        title: 'Campos obrigatórios faltando',
+        description: `Por favor, complete a seção ${getTabName('address')}`,
         variant: 'destructive',
       })
       return
@@ -423,12 +465,45 @@ export function ConfiguracoesEstabelecimento() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start mb-8 grid grid-cols-5 sm:inline-flex gap-1 sm:gap-0 h-auto">
+            <TabsTrigger value="info" className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Informações</span>
+              {!validateInfoTab() && (
+                <span className="ml-1 w-2 h-2 bg-red-500 rounded-full" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="photos" className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Fotos</span>
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              <span className="hidden sm:inline">Contato</span>
+              {!validateContactTab() && (
+                <span className="ml-1 w-2 h-2 bg-red-500 rounded-full" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="address" className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              <span className="hidden sm:inline">Endereço</span>
+              {!validateAddressTab() && (
+                <span className="ml-1 w-2 h-2 bg-red-500 rounded-full" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="hours" className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              <span className="hidden sm:inline">Horários</span>
+            </TabsTrigger>
+          </TabsList>
+
           {/* Informações Básicas */}
+          <TabsContent value="info">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ duration: 0.3 }}
           >
             <Card className="bg-white/5 backdrop-blur-sm border-white/10">
               <CardHeader>
@@ -491,12 +566,14 @@ export function ConfiguracoesEstabelecimento() {
               </CardContent>
             </Card>
           </motion.div>
+          </TabsContent>
 
           {/* Fotos */}
+          <TabsContent value="photos">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ duration: 0.3 }}
           >
             <Card className="bg-white/5 backdrop-blur-sm border-white/10">
               <CardHeader>
@@ -604,12 +681,14 @@ export function ConfiguracoesEstabelecimento() {
               </CardContent>
             </Card>
           </motion.div>
+          </TabsContent>
 
           {/* Contato */}
+          <TabsContent value="contact">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ duration: 0.3 }}
           >
             <Card className="bg-white/5 backdrop-blur-sm border-white/10">
               <CardHeader>
@@ -663,12 +742,14 @@ export function ConfiguracoesEstabelecimento() {
               </CardContent>
             </Card>
           </motion.div>
+          </TabsContent>
 
           {/* Endereço */}
+          <TabsContent value="address">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ duration: 0.3 }}
           >
             <Card className="bg-white/5 backdrop-blur-sm border-white/10">
               <CardHeader>
@@ -761,12 +842,14 @@ export function ConfiguracoesEstabelecimento() {
               </CardContent>
             </Card>
           </motion.div>
+          </TabsContent>
 
           {/* Horário de Funcionamento */}
+          <TabsContent value="hours">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ duration: 0.3 }}
           >
             <Card className="bg-white/5 backdrop-blur-sm border-white/10">
               <CardHeader>
@@ -824,7 +907,8 @@ export function ConfiguracoesEstabelecimento() {
               </CardContent>
             </Card>
           </motion.div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

@@ -263,3 +263,58 @@ export async function getBusinessesByCategory(category: string): Promise<Busines
     throw error
   }
 }
+
+/**
+ * Busca todos os estabelecimentos ativos
+ */
+export async function getAllActiveBusinesses(): Promise<Business[]> {
+  try {
+    console.log('[businessService] Buscando todos os estabelecimentos ativos...')
+    const businessesRef = collection(db, 'businesses')
+    const q = query(businessesRef, where('isActive', '==', true))
+    const querySnapshot = await getDocs(q)
+
+    const businesses: Business[] = []
+    querySnapshot.forEach((doc) => {
+      businesses.push(doc.data() as Business)
+    })
+
+    console.log(`[businessService] ${businesses.length} estabelecimentos encontrados`)
+    return businesses
+  } catch (error) {
+    console.error('[businessService] Erro ao buscar estabelecimentos:', error)
+    throw error
+  }
+}
+
+/**
+ * Busca estatísticas gerais dos estabelecimentos
+ */
+export async function getBusinessStats(): Promise<{
+  totalBusinesses: number
+  averageRating: number
+  totalReviews: number
+}> {
+  try {
+    const businesses = await getAllActiveBusinesses()
+
+    const totalBusinesses = businesses.length
+    const totalReviews = businesses.reduce((sum, b) => sum + b.totalReviews, 0)
+    const averageRating = businesses.length > 0
+      ? businesses.reduce((sum, b) => sum + b.rating, 0) / businesses.length
+      : 0
+
+    return {
+      totalBusinesses,
+      averageRating: Math.round(averageRating * 10) / 10,
+      totalReviews
+    }
+  } catch (error) {
+    console.error('[businessService] Erro ao buscar estatísticas:', error)
+    return {
+      totalBusinesses: 0,
+      averageRating: 0,
+      totalReviews: 0
+    }
+  }
+}

@@ -234,7 +234,69 @@ export async function getUserProfile(
 
       if (userSnap.exists()) {
         console.log('[getUserProfile] Perfil encontrado', attempt > 0 ? `(após ${attempt} tentativas)` : '');
-        return userSnap.data() as UserProfile;
+        const profileData = userSnap.data() as UserProfile;
+
+        // Migrar fotos externas (Google, Facebook) para Firebase Storage
+        // Isso resolve problemas de rate limiting e garante controle sobre as imagens
+        const shouldMigratePhoto = profileData.photoURL &&
+          (profileData.photoURL.includes('googleusercontent.com') ||
+           profileData.photoURL.includes('facebook.com') ||
+           profileData.photoURL.includes('fbcdn.net'));
+
+        if (shouldMigratePhoto && auth.currentUser?.uid === uid) {
+          // Verificar se já tentamos migrar recentemente (últimas 24h)
+          const lastMigrationAttempt = (profileData as any).lastPhotoMigrationAttempt;
+          const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+          const shouldAttemptMigration = !lastMigrationAttempt ||
+            (lastMigrationAttempt?.toMillis && lastMigrationAttempt.toMillis() < oneDayAgo);
+
+          if (shouldAttemptMigration) {
+            console.log('[getUserProfile] 🔄 Detectada foto externa, migrando para Firebase Storage...');
+            try {
+              const { downloadAndUploadProfilePhoto } = await import('@/services/storageService');
+              const firebasePhotoURL = await downloadAndUploadProfilePhoto(uid, profileData.photoURL!);
+              await updateDoc(userRef, {
+                photoURL: firebasePhotoURL,
+                lastPhotoMigrationAttempt: serverTimestamp(),
+                photoMigrationSuccess: true,
+                updatedAt: serverTimestamp()
+              });
+              profileData.photoURL = firebasePhotoURL;
+              console.log('[getUserProfile] ✅ Foto migrada com sucesso!', firebasePhotoURL);
+            } catch (migrationError: any) {
+              console.error('[getUserProfile] ⚠️ Erro ao migrar foto (continuando com URL original):', migrationError);
+              // Registrar tentativa falha para não tentar novamente nas próximas 24h
+              try {
+                await updateDoc(userRef, {
+                  lastPhotoMigrationAttempt: serverTimestamp(),
+                  photoMigrationSuccess: false,
+                  lastMigrationError: migrationError.message
+                });
+              } catch (updateError) {
+                console.error('[getUserProfile] Erro ao atualizar timestamp de migração:', updateError);
+              }
+            }
+          } else {
+            console.log('[getUserProfile] ⏭️ Migração de foto já tentada recentemente, pulando...');
+          }
+        }
+
+        // Sincronizar foto do Firebase Auth se estiver faltando no Firestore
+        if (!profileData.photoURL && auth.currentUser?.uid === uid && auth.currentUser.photoURL) {
+          console.log('[getUserProfile] Sincronizando foto do Firebase Auth para Firestore...');
+          try {
+            await updateDoc(userRef, {
+              photoURL: auth.currentUser.photoURL,
+              updatedAt: serverTimestamp()
+            });
+            profileData.photoURL = auth.currentUser.photoURL;
+            console.log('[getUserProfile] Foto sincronizada com sucesso!');
+          } catch (syncError) {
+            console.error('[getUserProfile] Erro ao sincronizar foto:', syncError);
+          }
+        }
+
+        return profileData;
       }
 
       // Se não existe e ainda temos retries, aguarda antes de tentar novamente

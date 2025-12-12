@@ -22,8 +22,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { businessCategories } from "@/data/mockData";
 import { BusinessCategory } from "@/types";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
+import { getAllActiveBusinesses, getBusinessStats, Business } from "@/services/businessService";
+import { trackAnonymousVisit } from "@/services/visitorService";
 
 const iconMap = {
   Scissors,
@@ -35,40 +37,6 @@ const iconMap = {
   Zap,
   Palette,
 };
-
-// Featured Professionals Mock Data
-const featuredProfessionals = [
-  {
-    id: 1,
-    name: "Studio Elite Hair",
-    category: "Barbearia",
-    rating: 4.9,
-    reviews: 234,
-    image:
-      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&h=400&fit=crop",
-    specialty: "Cortes Modernos & Barba",
-  },
-  {
-    id: 2,
-    name: "Beleza Pura",
-    category: "Estética",
-    rating: 5.0,
-    reviews: 189,
-    image:
-      "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop",
-    specialty: "Tratamentos Faciais",
-  },
-  {
-    id: 3,
-    name: "Unhas & Cia",
-    category: "Manicure",
-    rating: 4.8,
-    reviews: 312,
-    image:
-      "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400&h=400&fit=crop",
-    specialty: "Nail Art Premium",
-  },
-];
 
 // Testimonials Mock Data
 const testimonials = [
@@ -105,10 +73,50 @@ export function Home() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [featuredBusinesses, setFeaturedBusinesses] = useState<Business[]>([]);
+  const [stats, setStats] = useState({
+    totalBusinesses: 0,
+    averageRating: 0,
+    totalReviews: 0,
+  });
+  const [loading, setLoading] = useState(true);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
+
+  // Buscar estabelecimentos e registrar visita ao carregar a página
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+
+        // Registrar visita anônima
+        await trackAnonymousVisit('/');
+
+        // Buscar estabelecimentos
+        const allBusinesses = await getAllActiveBusinesses();
+        setBusinesses(allBusinesses);
+
+        // Selecionar 3 estabelecimentos em destaque (com melhor avaliação)
+        const featured = [...allBusinesses]
+          .sort((a, b) => b.rating - a.rating)
+          .slice(0, 3);
+        setFeaturedBusinesses(featured);
+
+        // Buscar estatísticas
+        const statistics = await getBusinessStats();
+        setStats(statistics);
+      } catch (error) {
+        console.error('[Home] Erro ao carregar dados:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const handleCategoryClick = (categoryId: BusinessCategory) => {
     navigate(`/categorias/${categoryId}`);
@@ -236,10 +244,26 @@ export function Home() {
             {/* Stats Row - Premium */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
               {[
-                { icon: MapPin, value: "50+", label: "Estabelecimentos" },
-                { icon: Star, value: "4.8", label: "Avaliação Média" },
-                { icon: Users, value: "10k+", label: "Clientes Ativos" },
-                { icon: Award, value: "200+", label: "Profissionais" },
+                {
+                  icon: MapPin,
+                  value: loading ? "..." : `${stats.totalBusinesses}`,
+                  label: "Estabelecimentos"
+                },
+                {
+                  icon: Star,
+                  value: loading ? "..." : stats.averageRating.toFixed(1),
+                  label: "Avaliação Média"
+                },
+                {
+                  icon: Award,
+                  value: loading ? "..." : `${stats.totalReviews}`,
+                  label: "Avaliações Totais"
+                },
+                {
+                  icon: Users,
+                  value: loading ? "..." : `${featuredBusinesses.length * 3}+`,
+                  label: "Profissionais"
+                },
               ].map((stat, index) => (
                 <motion.div
                   key={index}
@@ -293,47 +317,71 @@ export function Home() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredProfessionals.map((professional, index) => (
-              <motion.div
-                key={professional.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -10 }}
-                className="group cursor-pointer"
-              >
-                <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-gold/50 transition-all duration-500">
-                  <div className="aspect-square overflow-hidden">
-                    <img
-                      src={professional.image}
-                      alt={professional.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                  </div>
+            {loading ? (
+              // Loading skeleton
+              [1, 2, 3].map((i) => (
+                <div key={i} className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 animate-pulse">
+                  <div className="aspect-square bg-gray-800"></div>
                   <div className="p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gold font-medium">
-                        {professional.category}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-gold text-gold" />
-                        <span className="text-white font-semibold">
-                          {professional.rating}
-                        </span>
-                        <span className="text-gray-400 text-sm">
-                          ({professional.reviews})
-                        </span>
-                      </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-gold transition-colors">
-                      {professional.name}
-                    </h3>
-                    <p className="text-gray-400">{professional.specialty}</p>
+                    <div className="h-4 bg-gray-800 rounded mb-2"></div>
+                    <div className="h-6 bg-gray-800 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-800 rounded w-2/3"></div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              ))
+            ) : featuredBusinesses.length === 0 ? (
+              <div className="col-span-3 text-center py-12">
+                <p className="text-gray-400 text-lg">Nenhum estabelecimento encontrado</p>
+              </div>
+            ) : (
+              featuredBusinesses.map((business, index) => (
+                <motion.div
+                  key={business.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -10 }}
+                  className="group cursor-pointer"
+                  onClick={() => navigate(`/empresas/${business.id}`)}
+                >
+                  <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-gold/50 transition-all duration-500">
+                    <div className="aspect-square overflow-hidden">
+                      <img
+                        src={
+                          business.image ||
+                          business.coverImage ||
+                          (business.gallery && business.gallery.length > 0 ? business.gallery[0] : '') ||
+                          'https://images.unsplash.com/photo-1521898284481-a5ec348cb555?w=400&h=400&fit=crop'
+                        }
+                        alt={business.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gold font-medium capitalize">
+                          {business.category}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-gold text-gold" />
+                          <span className="text-white font-semibold">
+                            {business.rating.toFixed(1)}
+                          </span>
+                          <span className="text-gray-400 text-sm">
+                            ({business.totalReviews})
+                          </span>
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-gold transition-colors">
+                        {business.name}
+                      </h3>
+                      <p className="text-gray-400 line-clamp-2">{business.description}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </section>

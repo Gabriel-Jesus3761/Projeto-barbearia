@@ -43,7 +43,7 @@ export function SelecionarEmpresa() {
   const handleSelectBusiness = (businessId: string) => {
     // Salvar a empresa selecionada no contexto/localStorage
     localStorage.setItem('selected_business_id', businessId)
-    navigate('/dashboard')
+    navigate(`/${businessId}/dashboard`)
   }
 
   return (
@@ -56,7 +56,10 @@ export function SelecionarEmpresa() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate('/')}
+            >
               <div className="w-12 h-12 bg-gradient-to-br from-gold to-yellow-600 rounded-full flex items-center justify-center">
                 <img
                   src="/assets/images/Logo.png"

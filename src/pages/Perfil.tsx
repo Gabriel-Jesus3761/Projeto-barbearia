@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
@@ -29,11 +29,26 @@ export function Perfil() {
   })
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null)
   const [previewCover, setPreviewCover] = useState<string | null>(null)
+  const [imageLoadError, setImageLoadError] = useState(false)
 
   // Estados para o modal de crop
   const [cropModalOpen, setCropModalOpen] = useState(false)
   const [cropModalType, setCropModalType] = useState<'avatar' | 'cover'>('avatar')
   const [tempImageSrc, setTempImageSrc] = useState<string>('')
+
+  // Atualizar formData quando o user for carregado
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        cpf: user.cpf || '',
+        gender: user.gender || '',
+        birthDate: user.birthDate || '',
+      })
+    }
+  }, [user])
 
   if (!user) {
     navigate('/login')
@@ -196,12 +211,19 @@ export function Perfil() {
     return date.toLocaleDateString('pt-BR')
   }
 
-  const displayAvatar = previewAvatar || user.avatar
-  const displayCover = previewCover || user.coverPhoto
-  const completenessInfo = getProfileCompletenessInfo(user as any)
+  // Melhorar qualidade da imagem do Google alterando o tamanho
+  const getHighQualityImageUrl = (url: string | undefined) => {
+    if (!url) return url
+    // Se for URL do Google, aumentar o tamanho de s96-c para s400-c
+    if (url.includes('googleusercontent.com') && url.includes('=s96-c')) {
+      return url.replace('=s96-c', '=s400-c')
+    }
+    return url
+  }
 
-  console.log('[Perfil] user.avatar:', user.avatar)
-  console.log('[Perfil] displayAvatar:', displayAvatar)
+  const displayAvatar = previewAvatar || getHighQualityImageUrl(user.avatar)
+  const displayCover = previewCover || getHighQualityImageUrl(user.coverPhoto)
+  const completenessInfo = getProfileCompletenessInfo(user as any)
 
   return (
     <div className="min-h-screen bg-black">
@@ -255,6 +277,38 @@ export function Perfil() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Photo Migration Notice */}
+        {imageLoadError && user.avatar?.includes('googleusercontent.com') && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-2xl p-6 backdrop-blur-xl"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                <Camera className="w-6 h-6 text-blue-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white mb-2">Foto de perfil temporariamente indisponível</h3>
+                <p className="text-sm text-gray-300 mb-4">
+                  Sua foto do Google não pode ser carregada no momento devido a limitações de taxa.
+                  O sistema tentará migrar sua foto automaticamente nas próximas 24 horas.
+                </p>
+                <p className="text-sm text-gray-400 mb-4">
+                  <strong>Solução imediata:</strong> Clique em "Editar Perfil" e faça upload de uma nova foto.
+                </p>
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:opacity-90 text-white"
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  Fazer upload de foto
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Profile Incomplete Warning */}
         {!completenessInfo.isComplete && (
           <motion.div
@@ -349,15 +403,28 @@ export function Perfil() {
 
             <div className="absolute -bottom-16 left-8">
               <div className="relative group">
-                {displayAvatar ? (
+                {displayAvatar && !imageLoadError ? (
                   <img
                     src={displayAvatar}
                     alt={user.name}
                     className="w-32 h-32 rounded-2xl object-cover border-4 border-black shadow-2xl"
+                    onError={() => setImageLoadError(true)}
+                    onLoad={() => setImageLoadError(false)}
                   />
                 ) : (
-                  <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-black shadow-2xl">
-                    {getInitials(user.name)}
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-black shadow-2xl">
+                      {getInitials(user.name)}
+                    </div>
+                    {imageLoadError && !isEditing && (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded-full shadow-lg transition-colors flex items-center gap-1"
+                      >
+                        <Camera className="w-3 h-3" />
+                        Adicionar foto
+                      </button>
+                    )}
                   </div>
                 )}
 

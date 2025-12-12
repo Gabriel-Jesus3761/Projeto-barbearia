@@ -109,19 +109,9 @@ function App() {
             }
           />
 
-          {/* Rota de Configurações (sem Layout) */}
-          <Route
-            path="/configuracoes"
-            element={
-              <ProtectedRoute allowedRoles={['owner']}>
-                <ConfiguracoesEstabelecimento />
-              </ProtectedRoute>
-            }
-          />
-
           {/* Rotas do Proprietário (Admin) - Dashboard da Empresa Selecionada */}
           <Route
-            path="/dashboard"
+            path="/:businessId/dashboard"
             element={
               <ProtectedRoute allowedRoles={['owner']}>
                 <Layout />
@@ -140,7 +130,7 @@ function App() {
 
           {/* Rotas antigas de gerenciamento (agora dentro do dashboard) */}
           <Route
-            path="/entrada-despesas"
+            path="/:businessId/entrada-despesas"
             element={
               <ProtectedRoute allowedRoles={['owner']}>
                 <Layout />
@@ -150,7 +140,7 @@ function App() {
             <Route index element={<EntradaDespesas />} />
           </Route>
           <Route
-            path="/agendamentos"
+            path="/:businessId/agendamentos"
             element={
               <ProtectedRoute allowedRoles={['owner']}>
                 <Layout />
@@ -160,7 +150,7 @@ function App() {
             <Route index element={<Agendamentos />} />
           </Route>
           <Route
-            path="/servicos"
+            path="/:businessId/servicos"
             element={
               <ProtectedRoute allowedRoles={['owner']}>
                 <Layout />
@@ -170,7 +160,7 @@ function App() {
             <Route index element={<Servicos />} />
           </Route>
           <Route
-            path="/profissionais"
+            path="/:businessId/profissionais"
             element={
               <ProtectedRoute allowedRoles={['owner']}>
                 <Layout />
