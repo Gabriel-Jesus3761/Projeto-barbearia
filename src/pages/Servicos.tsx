@@ -28,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { mockServices } from '@/data/mockData'
 import { formatCurrency } from '@/lib/utils'
+import { OwnerPageLayout } from '@/components/layout/OwnerPageLayout'
 
 type TabType = 'servicos' | 'categorias' | 'combos' | 'cupons' | 'promocoes'
 
@@ -51,18 +52,11 @@ export function Servicos() {
   const [activeTab, setActiveTab] = useState<TabType>('servicos')
 
   return (
-    <div className="min-h-screen text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gold mb-2">Gerenciar Serviços</h1>
-          <p className="text-sm text-gray-400">Gerencie serviços, categorias, combos, cupons e promoções</p>
-        </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="w-full">
-          <TabsList className="w-full justify-start mb-8 grid grid-cols-5 sm:inline-flex gap-1 sm:gap-0 h-auto bg-white/5 border border-white/10">
-            <TabsTrigger value="servicos" className="flex items-center gap-2">
+    <OwnerPageLayout title="Gerenciar Serviços" subtitle="Gerencie serviços, categorias, combos, cupons e promoções">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="w-full">
+        <TabsList className="w-full justify-start mb-8 grid grid-cols-5 sm:inline-flex gap-1 sm:gap-0 h-auto bg-white/5 border border-white/10">
+          <TabsTrigger value="servicos" className="flex items-center gap-2">
               <Scissors className="w-4 h-4" />
               <span className="hidden sm:inline">Serviços</span>
             </TabsTrigger>
@@ -81,36 +75,35 @@ export function Servicos() {
             <TabsTrigger value="promocoes" className="flex items-center gap-2">
               <Percent className="w-4 h-4" />
               <span className="hidden sm:inline">Promoções</span>
-            </TabsTrigger>
-          </TabsList>
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Aba Serviços */}
-          <TabsContent value="servicos">
-            <ServicosTab />
-          </TabsContent>
+        {/* Aba Serviços */}
+        <TabsContent value="servicos">
+          <ServicosTab />
+        </TabsContent>
 
-          {/* Aba Categorias */}
-          <TabsContent value="categorias">
-            <CategoriasTab />
-          </TabsContent>
+        {/* Aba Categorias */}
+        <TabsContent value="categorias">
+          <CategoriasTab />
+        </TabsContent>
 
-          {/* Aba Combos */}
-          <TabsContent value="combos">
-            <CombosTab />
-          </TabsContent>
+        {/* Aba Combos */}
+        <TabsContent value="combos">
+          <CombosTab />
+        </TabsContent>
 
-          {/* Aba Cupons */}
-          <TabsContent value="cupons">
-            <CuponsTab />
-          </TabsContent>
+        {/* Aba Cupons */}
+        <TabsContent value="cupons">
+          <CuponsTab />
+        </TabsContent>
 
-          {/* Aba Promoções */}
-          <TabsContent value="promocoes">
-            <PromocoesTab />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+        {/* Aba Promoções */}
+        <TabsContent value="promocoes">
+          <PromocoesTab />
+        </TabsContent>
+      </Tabs>
+    </OwnerPageLayout>
   )
 }
 

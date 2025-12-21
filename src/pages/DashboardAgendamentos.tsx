@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { mockAppointments } from "@/data/mockData";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { theme, cardClasses, iconClasses, pageClasses } from "@/styles/theme";
+import { theme, cardClasses, iconClasses } from "@/styles/theme";
+import { OwnerPageLayout } from "@/components/layout/OwnerPageLayout";
 
 type DateRange = { from?: Date; to?: Date };
 
@@ -238,14 +239,11 @@ export function DashboardAgendamentos() {
   };
 
   return (
-    <div className="min-h-screen text-white">
-      <div className={pageClasses.content()}>
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gold mb-2">Dashboard de Agendamentos</h1>
-          <p className="text-sm text-gray-400">Análise de agendamentos e padrões de horários</p>
-        </div>
-
-        {/* Filtros */}
+    <OwnerPageLayout
+      title="Dashboard de Agendamentos"
+      subtitle="Análise de agendamentos e padrões de horários"
+    >
+      {/* Filtros */}
         <div className="mb-6 flex flex-col sm:flex-row gap-3">
           <DateRangePicker
             dateRange={dateRange}
@@ -657,7 +655,6 @@ export function DashboardAgendamentos() {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
-    </div>
+    </OwnerPageLayout>
   );
 }

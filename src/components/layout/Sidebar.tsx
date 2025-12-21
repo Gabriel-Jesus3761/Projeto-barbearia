@@ -61,8 +61,6 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
   const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [isHovered, setIsHovered] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
   const [business, setBusiness] = useState<Business | null>(null)
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({
     'Painéis de gestão': true // Dashboard submenu expanded by default
@@ -88,23 +86,23 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
     loadBusiness()
   }, [])
 
+  // Bloquear scroll quando sidebar estiver aberto
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
     }
 
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+    // Cleanup ao desmontar
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileOpen])
 
-  const shouldExpand = !isMobile && (isExpanded || isHovered)
-
-  // Close mobile menu when clicking on a link
+  // Close menu when clicking on a link
   const handleLinkClick = () => {
-    if (isMobile) {
-      setIsMobileOpen(false)
-    }
+    setIsMobileOpen(false)
   }
 
   // Toggle submenu expansion
@@ -165,110 +163,99 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Backdrop - Sempre que sidebar estiver aberta */}
       <AnimatePresence>
-        {isMobile && isMobileOpen && (
+        {isMobileOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
             onClick={() => setIsMobileOpen(false)}
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
           />
         )}
       </AnimatePresence>
 
       {/* Sidebar */}
       <motion.aside
-        initial={isMobile ? { x: -280 } : { x: -280 }}
+        initial={{ x: -320 }}
         animate={{
-          x: isMobile ? (isMobileOpen ? 0 : -280) : 0,
-          width: isMobile ? 280 : shouldExpand ? 280 : 80
+          x: isMobileOpen ? 0 : -320
         }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        onMouseEnter={() => !isMobile && setIsHovered(true)}
-        onMouseLeave={() => !isMobile && setIsHovered(false)}
-        className="bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl text-white h-screen fixed left-0 top-0 flex flex-col border-r border-white/10 z-50"
+        exit={{ x: -320 }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        className="fixed left-0 top-0 h-full w-80 bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl border-r border-white/10 z-50 overflow-y-auto"
       >
         {/* Header - Business Info */}
-        <div className={cn(
-          "p-6 border-b border-white/10",
-          !isMobile && !shouldExpand && "flex justify-center"
-        )}>
-          <div className="flex items-center justify-between">
-            {business ? (
-              <div className="flex items-center gap-3 flex-1">
-                <button
-                  onClick={() => {
-                    if (isMobile) {
-                      setIsMobileOpen(!isMobileOpen)
-                    } else {
-                      setIsExpanded(!isExpanded)
-                    }
-                  }}
-                  className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-gold/20 cursor-pointer"
-                  title={isMobile ? "Alternar menu" : isExpanded ? "Recolher sidebar" : "Expandir sidebar"}
-                >
-                  {business?.image ? (
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
+                {business?.image ? (
+                  <img
+                    src={business.image}
+                    alt={business.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center">
                     <img
-                      src={business.image}
-                      alt={business.name}
-                      className="w-full h-full object-cover"
+                      src="/assets/images/Logo.png"
+                      alt="Connecta ServiçosPro"
+                      className="w-full h-full object-cover rounded-xl scale-110"
                     />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center text-white font-bold text-xl">
-                      {getInitials(business.name)}
-                    </div>
-                  )}
-                </button>
-                {(shouldExpand || isMobileOpen) && (
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{business.name}</p>
-                    <p className="text-xs text-gray-400 truncate">Painel de Gestão</p>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="flex items-center gap-3 flex-1">
-                <button
-                  onClick={() => {
-                    if (isMobile) {
-                      setIsMobileOpen(!isMobileOpen)
-                    } else {
-                      setIsExpanded(!isExpanded)
-                    }
-                  }}
-                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-gold/20 cursor-pointer"
-                  title={isMobile ? "Alternar menu" : isExpanded ? "Recolher sidebar" : "Expandir sidebar"}
-                >
-                  <Building2 className="w-6 h-6 text-white" />
-                </button>
-                {(shouldExpand || isMobileOpen) && (
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white">BarberPro</p>
-                    <p className="text-xs text-gray-400">Painel de Gestão</p>
-                  </div>
-                )}
+              <div>
+                <h2 className="text-lg font-bold text-white">{business?.name || 'Connecta'}</h2>
+                <p className="text-xs text-gray-400">Painel de Gestão</p>
               </div>
-            )}
-            {isMobile && isMobileOpen && (
-              <button
-                onClick={() => setIsMobileOpen(false)}
-                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors ml-2"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
-            )}
+            </div>
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-400" />
+            </button>
           </div>
+
+          {/* User Info */}
+          {user && (
+            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
+              {displayAvatar ? (
+                <img
+                  src={displayAvatar}
+                  alt={user.name}
+                  className="w-12 h-12 rounded-lg object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center text-white font-bold text-lg">
+                  {getInitials(user.name)}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{user.name}</p>
+                <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                {user.activeRole === 'owner' && (
+                  <span className="text-xs px-2 py-0.5 bg-gold/20 text-gold rounded-full inline-block mt-1">
+                    Proprietário
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
-          {(shouldExpand || isMobileOpen) && (
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-              Menu
-            </p>
-          )}
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+            Menu
+          </p>
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.to || item.label}>
@@ -283,42 +270,24 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
                         "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
                         isParentActive(item)
                           ? "bg-gold/10 text-gold border border-gold/20"
-                          : "hover:bg-white/5 text-gray-400 hover:text-white",
-                        !isMobile && !shouldExpand && "justify-center"
+                          : "hover:bg-white/5 text-gray-400 hover:text-white"
                       )}
-                      title={!isMobile && !shouldExpand ? item.label : undefined}
                     >
                       <item.icon className="w-5 h-5 flex-shrink-0" />
-                      <AnimatePresence>
-                        {(shouldExpand || isMobileOpen) && (
-                          <motion.span
-                            initial={{ opacity: 0, width: 0 }}
-                            animate={{ opacity: 1, width: 'auto' }}
-                            exit={{ opacity: 0, width: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="font-medium text-sm whitespace-nowrap overflow-hidden flex-1 text-left"
-                          >
-                            {item.label}
-                          </motion.span>
+                      <span className="font-medium text-sm flex-1 text-left">
+                        {item.label}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          "w-4 h-4 flex-shrink-0 transition-transform",
+                          expandedMenus[item.label] ? "rotate-0" : "-rotate-90"
                         )}
-                      </AnimatePresence>
-                      <AnimatePresence>
-                        {(shouldExpand || isMobileOpen) && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1, rotate: expandedMenus[item.label] ? 0 : -90 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <ChevronDown className="w-4 h-4 flex-shrink-0" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      />
                     </motion.button>
 
                     {/* Submenu items */}
                     <AnimatePresence>
-                      {expandedMenus[item.label] && (shouldExpand || isMobileOpen) && (
+                      {expandedMenus[item.label] && (
                         <motion.ul
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
@@ -365,26 +334,14 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
                           "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
                           isActive
                             ? "bg-gold/10 text-gold border border-gold/20"
-                            : "hover:bg-white/5 text-gray-400 hover:text-white",
-                          !isMobile && !shouldExpand && "justify-center"
+                            : "hover:bg-white/5 text-gray-400 hover:text-white"
                         )
                       }
-                      title={!isMobile && !shouldExpand ? item.label : undefined}
                     >
                       <item.icon className="w-5 h-5 flex-shrink-0" />
-                      <AnimatePresence>
-                        {(shouldExpand || isMobileOpen) && (
-                          <motion.span
-                            initial={{ opacity: 0, width: 0 }}
-                            animate={{ opacity: 1, width: 'auto' }}
-                            exit={{ opacity: 0, width: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="font-medium text-sm whitespace-nowrap overflow-hidden flex-1 text-left"
-                          >
-                            {item.label}
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
+                      <span className="font-medium text-sm flex-1 text-left">
+                        {item.label}
+                      </span>
                     </NavLink>
                   </motion.div>
                 )}
@@ -399,26 +356,10 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileOpen, setIsMobileOp
             onClick={handleLogout}
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.98 }}
-            className={cn(
-              "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all",
-              !isMobile && !shouldExpand && "justify-center"
-              )}
-              title={!isMobile && !shouldExpand ? "Sair" : undefined}
-            >
-              <LogOut className="w-5 h-5 flex-shrink-0" />
-            <AnimatePresence>
-              {(shouldExpand || isMobileOpen) && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  exit={{ opacity: 0, width: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="font-medium text-sm whitespace-nowrap overflow-hidden"
-                >
-                  Sair
-                </motion.span>
-              )}
-            </AnimatePresence>
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+          >
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <span className="font-medium text-sm">Sair</span>
           </motion.button>
         </div>
       </motion.aside>

@@ -30,6 +30,7 @@ import {
   type Business,
   type BusinessHours
 } from '@/services/businessService'
+import { OwnerPageLayout } from '@/components/layout/OwnerPageLayout'
 
 const DAY_LABELS: Record<string, string> = {
   monday: 'Segunda-feira',
@@ -445,26 +446,21 @@ export function ConfiguracoesEstabelecimento() {
   }
 
   return (
-    <div className="min-h-screen text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gold mb-2">Configurações do Estabelecimento</h1>
-            <p className="text-sm text-gray-400">Gerencie as informações do seu estabelecimento</p>
-          </div>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-gradient-to-r from-gold to-yellow-600 hover:from-yellow-600 hover:to-gold text-black font-semibold"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-          </Button>
-        </div>
+    <OwnerPageLayout title="Configurações do Estabelecimento" subtitle="Gerencie as informações do seu estabelecimento">
+      <div className="mb-8 flex items-center justify-end">
+        <Button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="bg-gradient-to-r from-gold to-yellow-600 hover:from-yellow-600 hover:to-gold text-black font-semibold"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+        </Button>
+      </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full justify-start mb-8 grid grid-cols-5 sm:inline-flex gap-1 sm:gap-0 h-auto">
-            <TabsTrigger value="info" className="flex items-center gap-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full justify-start mb-8 grid grid-cols-5 sm:inline-flex gap-1 sm:gap-0 h-auto">
+          <TabsTrigger value="info" className="flex items-center gap-2">
               <Building2 className="w-4 h-4" />
               <span className="hidden sm:inline">Informações</span>
               {!validateInfoTab() && (
@@ -492,11 +488,11 @@ export function ConfiguracoesEstabelecimento() {
             <TabsTrigger value="hours" className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
               <span className="hidden sm:inline">Horários</span>
-            </TabsTrigger>
-          </TabsList>
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Informações Básicas */}
-          <TabsContent value="info">
+        {/* Informações Básicas */}
+        <TabsContent value="info">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -562,11 +558,11 @@ export function ConfiguracoesEstabelecimento() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-          </TabsContent>
+        </motion.div>
+        </TabsContent>
 
-          {/* Fotos */}
-          <TabsContent value="photos">
+        {/* Fotos */}
+        <TabsContent value="photos">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -677,11 +673,11 @@ export function ConfiguracoesEstabelecimento() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-          </TabsContent>
+        </motion.div>
+        </TabsContent>
 
-          {/* Contato */}
-          <TabsContent value="contact">
+        {/* Contato */}
+        <TabsContent value="contact">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -738,11 +734,11 @@ export function ConfiguracoesEstabelecimento() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-          </TabsContent>
+        </motion.div>
+        </TabsContent>
 
-          {/* Endereço */}
-          <TabsContent value="address">
+        {/* Endereço */}
+        <TabsContent value="address">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -838,11 +834,11 @@ export function ConfiguracoesEstabelecimento() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-          </TabsContent>
+        </motion.div>
+        </TabsContent>
 
-          {/* Horário de Funcionamento */}
-          <TabsContent value="hours">
+        {/* Horário de Funcionamento */}
+        <TabsContent value="hours">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -903,10 +899,9 @@ export function ConfiguracoesEstabelecimento() {
                 })}
               </CardContent>
             </Card>
-          </motion.div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+        </motion.div>
+        </TabsContent>
+      </Tabs>
+    </OwnerPageLayout>
   )
 }

@@ -19,7 +19,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { theme, pageClasses } from '@/styles/theme'
+import { theme } from '@/styles/theme'
+import { OwnerPageLayout } from '@/components/layout/OwnerPageLayout'
 
 type TabType = 'entradas' | 'despesas'
 type StatusFilter = 'todos' | 'concluido' | 'agendado' | 'cancelado'
@@ -268,21 +269,7 @@ export function EntradaDespesas() {
   const margemLucro = receitaConfirmada > 0 ? (lucroLiquido / receitaConfirmada) * 100 : 0
 
   return (
-    <div className={pageClasses.container()}>
-      <div className={pageClasses.content()}>
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-gold to-yellow-600 bg-clip-text text-transparent mb-2">
-            Entrada/Despesas
-          </h1>
-          <p className={theme.colors.text.secondary}>
-            Gerencie suas entradas e despesas
-          </p>
-        </motion.div>
+    <OwnerPageLayout title="Entrada/Despesas" subtitle="Gerencie suas entradas e despesas">
 
       {/* Card de Resumo Geral */}
       <motion.div
@@ -848,7 +835,6 @@ export function EntradaDespesas() {
           </>
         )}
       </AnimatePresence>
-      </div>
-    </div>
+    </OwnerPageLayout>
   )
 }

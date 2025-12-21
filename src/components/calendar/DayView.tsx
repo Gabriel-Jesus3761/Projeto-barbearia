@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Appointment } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 import { theme } from '@/styles/theme'
+import { AppointmentDetailModal } from './AppointmentDetailModal'
 
 interface DayViewProps {
   appointments: Appointment[]
@@ -18,18 +19,23 @@ interface DayViewProps {
 export function DayView({ appointments, currentDate, onDateChange, onAppointmentClick }: DayViewProps) {
   const [showAllHours, setShowAllHours] = useState(true)
   const [expandedAppointments, setExpandedAppointments] = useState<Set<string>>(new Set())
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const allHours = Array.from({ length: 14 }, (_, i) => i + 7) // 7h às 20h
 
-  const toggleAppointment = (appointmentId: string) => {
-    setExpandedAppointments(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(appointmentId)) {
-        newSet.delete(appointmentId)
-      } else {
-        newSet.add(appointmentId)
-      }
-      return newSet
-    })
+  const handleAppointmentClick = (appointment: Appointment, e: React.MouseEvent) => {
+    e.stopPropagation() // Impede que o clique propague para o container pai
+
+    // Se já está expandido, abre o modal
+    if (expandedAppointments.has(appointment.id)) {
+      setSelectedAppointment(appointment)
+    } else {
+      // Se não está expandido, expande
+      setExpandedAppointments(prev => {
+        const newSet = new Set(prev)
+        newSet.add(appointment.id)
+        return newSet
+      })
+    }
   }
 
   const previousDay = () => {
@@ -164,25 +170,31 @@ export function DayView({ appointments, currentDate, onDateChange, onAppointment
   }
 
   return (
-    <div className="space-y-4">
+    <div
+      className="space-y-4"
+      onClick={() => {
+        // Recolher todos os agendamentos expandidos ao clicar fora
+        setExpandedAppointments(new Set())
+      }}
+    >
       {/* Header */}
       <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gold capitalize">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-gold capitalize">
               {formatDayName(currentDate)}
             </h2>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">
               {dayAppointments.length} agendamento{dayAppointments.length !== 1 ? 's' : ''} hoje
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={goToToday}
-              className="hidden sm:flex"
+              className="text-xs"
             >
               Hoje
             </Button>
@@ -191,29 +203,29 @@ export function DayView({ appointments, currentDate, onDateChange, onAppointment
                 variant="ghost"
                 size="icon"
                 onClick={previousDay}
-                className="h-9 w-9 text-gray-400 hover:text-gold"
+                className="h-8 w-8 sm:h-9 sm:w-9 text-gray-400 hover:text-gold"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={nextDay}
-                className="h-9 w-9 text-gray-400 hover:text-gold"
+                className="h-8 w-8 sm:h-9 sm:w-9 text-gray-400 hover:text-gold"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
           </div>
         </div>
 
         {/* Toggle para mostrar todos os horários */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <Button
             variant={showAllHours ? 'default' : 'outline'}
             size="sm"
             onClick={() => setShowAllHours(!showAllHours)}
-            className="text-xs"
+            className="text-xs w-full sm:w-auto"
           >
             {showAllHours ? (
               <>
@@ -228,7 +240,7 @@ export function DayView({ appointments, currentDate, onDateChange, onAppointment
             )}
           </Button>
           {!showAllHours && dayAppointments.length > 0 && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 text-center sm:text-left">
               Mostrando {hours.length} de {allHours.length} horários
             </span>
           )}
@@ -237,8 +249,8 @@ export function DayView({ appointments, currentDate, onDateChange, onAppointment
 
       {/* Timeline */}
       <Card className={`${theme.colors.card.base} border-gold/20`}>
-        <CardContent className="p-3">
-          <div className="space-y-1.5">
+        <CardContent className="p-2 sm:p-3">
+          <div className="space-y-1 sm:space-y-1.5">
             {hours.map((hour, index) => {
               const hourAppointments = getAppointmentsForHour(hour)
               const isCurrent = isCurrentHour(hour)
@@ -252,8 +264,8 @@ export function DayView({ appointments, currentDate, onDateChange, onAppointment
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.01 }}
                   className={`
-                    flex gap-3 rounded-lg border transition-all
-                    ${isPast && hasAppointments ? 'p-1.5' : hasAppointments ? 'p-2.5' : 'p-1.5'}
+                    flex gap-2 sm:gap-3 rounded-lg border transition-all
+                    ${isPast && hasAppointments ? 'p-1 sm:p-1.5' : hasAppointments ? 'p-2 sm:p-2.5' : 'p-1 sm:p-1.5'}
                     ${isCurrent
                       ? 'bg-gold/10 border-gold shadow-lg shadow-gold/20'
                       : isPast
@@ -265,8 +277,8 @@ export function DayView({ appointments, currentDate, onDateChange, onAppointment
                   `}
                 >
                   {/* Hora */}
-                  <div className="w-16 flex-shrink-0">
-                    <div className={`text-xs font-semibold ${isCurrent ? 'text-gold' : isPast ? 'text-gray-600' : hasAppointments ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <div className="w-12 sm:w-16 flex-shrink-0">
+                    <div className={`text-[10px] sm:text-xs font-semibold ${isCurrent ? 'text-gold' : isPast ? 'text-gray-600' : hasAppointments ? 'text-gray-400' : 'text-gray-600'}`}>
                       {hour.toString().padStart(2, '0')}:00
                     </div>
                   </div>
@@ -289,7 +301,7 @@ export function DayView({ appointments, currentDate, onDateChange, onAppointment
                           return (
                             <div
                               key={appointment.id}
-                              onClick={() => toggleAppointment(appointment.id)}
+                              onClick={(e) => handleAppointmentClick(appointment, e)}
                               className={`
                                 rounded-lg border-l-3 cursor-pointer
                                 transition-all duration-200
@@ -339,6 +351,11 @@ export function DayView({ appointments, currentDate, onDateChange, onAppointment
         </CardContent>
       </Card>
 
+      {/* Modal de Detalhes */}
+      <AppointmentDetailModal
+        appointment={selectedAppointment}
+        onClose={() => setSelectedAppointment(null)}
+      />
     </div>
   )
 }

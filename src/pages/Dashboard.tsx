@@ -3,9 +3,10 @@ import { motion } from 'framer-motion'
 import { Calendar, DollarSign, Users, Clock, TrendingUp, UserCheck, Scissors } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { OwnerPageLayout } from '@/components/layout/OwnerPageLayout'
 import { mockAppointments } from '@/data/mockData'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { theme, cardClasses, iconClasses, pageClasses } from '@/styles/theme'
+import { theme, cardClasses, iconClasses } from '@/styles/theme'
 
 export function Dashboard() {
   const today = new Date()
@@ -124,14 +125,11 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen text-white">
-      <div className={pageClasses.content()}>
-        {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gold mb-2">Dashboard Geral</h1>
-          <p className="text-sm text-gray-400">{`Visão geral do dia - ${formatDate(new Date())}`}</p>
-        </div>
-        {/* Stats Grid - Cards de resumo do dia */}
+    <OwnerPageLayout
+      title="Dashboard Geral"
+      subtitle={`Visão geral do dia - ${formatDate(new Date())}`}
+    >
+      {/* Stats Grid - Cards de resumo do dia */}
         <motion.div
           variants={theme.animations.container}
           initial="hidden"
@@ -432,7 +430,6 @@ export function Dashboard() {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
-    </div>
+    </OwnerPageLayout>
   )
 }

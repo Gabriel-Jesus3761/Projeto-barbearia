@@ -37,7 +37,8 @@
       "Bash(firebase auth:export:*)",
       "Bash(firebase login:list:*)",
       "Bash(git checkout:*)",
-      "Bash(python apply_dark_theme.py:*)"
+      "Bash(python apply_dark_theme.py:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

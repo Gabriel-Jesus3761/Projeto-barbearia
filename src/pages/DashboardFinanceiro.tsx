@@ -10,10 +10,11 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { OwnerPageLayout } from "@/components/layout/OwnerPageLayout";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { mockAppointments, mockExpenses } from "@/data/mockData";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { theme, cardClasses, iconClasses, pageClasses } from "@/styles/theme";
+import { theme, cardClasses, iconClasses } from "@/styles/theme";
 
 type DateRange = { from?: Date; to?: Date };
 
@@ -206,14 +207,11 @@ export default function DashboardFinanceiro() {
   };
 
   return (
-    <div className="min-h-screen text-white">
-      <div className={pageClasses.content()}>
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gold mb-2">Dashboard Financeiro</h1>
-          <p className="text-sm text-gray-400">Controle de entrada, saída e lucro da empresa</p>
-        </div>
-
-        {/* Filtros */}
+    <OwnerPageLayout
+      title="Dashboard Financeiro"
+      subtitle="Controle de entrada, saída e lucro da empresa"
+    >
+      {/* Filtros */}
         <div className="mb-6 flex flex-col sm:flex-row gap-3">
           <DateRangePicker
             dateRange={dateRange}
@@ -227,7 +225,7 @@ export default function DashboardFinanceiro() {
           variants={theme.animations.container}
           initial="hidden"
           animate="show"
-          className={pageClasses.statsGrid()}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
           <motion.div variants={theme.animations.item}>
             <Card className={cardClasses.statCard('green')}>
@@ -330,7 +328,7 @@ export default function DashboardFinanceiro() {
           </motion.div>
         </motion.div>
 
-        <div className={pageClasses.grid2()}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Despesas por Categoria */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -630,7 +628,6 @@ export default function DashboardFinanceiro() {
             </Card>
           </motion.div>
         )}
-      </div>
-    </div>
+    </OwnerPageLayout>
   );
 }

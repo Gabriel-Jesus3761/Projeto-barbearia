@@ -1,121 +1,85 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, User, Scissors, Filter, Plus, List, CalendarDays, CalendarRange, CalendarClock } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Calendar, Filter, Plus, Kanban, CalendarDays, CalendarRange, CalendarClock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { mockAppointments } from '@/data/mockData'
-import { formatCurrency, formatDate } from '@/lib/utils'
-import { theme, pageClasses } from '@/styles/theme'
 import { CalendarView, CalendarMode } from '@/components/calendar/CalendarView'
+import { KanbanView } from '@/components/calendar/KanbanView'
+import { usePinchZoom, getNextZoomLevel } from '@/hooks/usePinchZoom'
+import { OwnerPageLayout } from '@/components/layout/OwnerPageLayout'
 
-type ViewMode = 'list' | 'calendar'
+type ViewMode = 'kanban' | 'calendar'
 
 export function Agendamentos() {
   const [filter, setFilter] = useState<string>('all')
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
-  const [calendarMode, setCalendarMode] = useState<CalendarMode>('month')
+  const [viewMode, setViewMode] = useState<ViewMode>('calendar')
+  const [calendarMode, setCalendarMode] = useState<CalendarMode>('day')
+  const [zoomIndicator, setZoomIndicator] = useState<string | null>(null)
+
+  const showZoomIndicator = (mode: CalendarMode) => {
+    const labels = {
+      day: 'Visualização: Dia',
+      week: 'Visualização: Semana',
+      month: 'Visualização: Mês',
+      year: 'Visualização: Ano',
+    }
+    setZoomIndicator(labels[mode])
+    setTimeout(() => setZoomIndicator(null), 1500)
+  }
+
+  // Gestos de pinça para zoom
+  usePinchZoom({
+    onZoomIn: () => {
+      if (viewMode === 'calendar') {
+        const nextMode = getNextZoomLevel(calendarMode, 'in')
+        if (nextMode !== calendarMode) {
+          setCalendarMode(nextMode)
+          showZoomIndicator(nextMode)
+        }
+      }
+    },
+    onZoomOut: () => {
+      if (viewMode === 'calendar') {
+        const nextMode = getNextZoomLevel(calendarMode, 'out')
+        if (nextMode !== calendarMode) {
+          setCalendarMode(nextMode)
+          showZoomIndicator(nextMode)
+        }
+      }
+    },
+    threshold: 50,
+  })
 
   const filteredAppointments = mockAppointments.filter(apt => {
     if (filter === 'all') return true
     return apt.status === filter
   })
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'success'
-      case 'pending':
-        return 'warning'
-      case 'completed':
-        return 'default'
-      case 'cancelled':
-        return 'destructive'
-      default:
-        return 'default'
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'Confirmado'
-      case 'pending':
-        return 'Pendente'
-      case 'completed':
-        return 'Concluído'
-      case 'cancelled':
-        return 'Cancelado'
-      default:
-        return status
-    }
-  }
-
   return (
-    <div className="min-h-screen text-white">
-      <div className={pageClasses.content()}>
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gold mb-2">Agendamentos</h1>
-          <p className="text-sm text-gray-400">Gerencie todos os agendamentos</p>
-        </div>
+    <OwnerPageLayout title="Agendamentos" subtitle="Gerencie todos os agendamentos">
+      {/* Indicador de Zoom */}
+      {zoomIndicator && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-gold/90 text-black px-4 py-2 rounded-lg shadow-lg font-semibold text-sm"
+        >
+          {zoomIndicator}
+        </motion.div>
+      )}
 
-        {/* Actions Bar */}
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between mb-6 gap-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1">
+      {/* Actions Bar */}
+      <div className="flex flex-col gap-3 mb-6">
+        {/* Busca e Botões de Ação - Desktop */}
+        <div className="hidden sm:flex gap-2">
             <Input
               type="search"
               placeholder="Buscar cliente..."
-              className="w-full sm:w-80"
+              className="flex-1"
             />
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-              <Button
-                variant={filter === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('all')}
-                className="whitespace-nowrap"
-              >
-                Todos
-              </Button>
-              <Button
-                variant={filter === 'pending' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('pending')}
-                className="whitespace-nowrap"
-              >
-                Pendentes
-              </Button>
-              <Button
-                variant={filter === 'confirmed' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('confirmed')}
-                className="whitespace-nowrap"
-              >
-                Confirmados
-              </Button>
-              <Button
-                variant={filter === 'completed' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('completed')}
-                className="whitespace-nowrap"
-              >
-                Concluídos
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Toggle de Visualização */}
             <div className="flex items-center gap-1 border border-gray-700 rounded-lg p-1">
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="h-8 px-3"
-              >
-                <List className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">Lista</span>
-              </Button>
               <Button
                 variant={viewMode === 'calendar' ? 'default' : 'ghost'}
                 size="sm"
@@ -123,151 +87,202 @@ export function Agendamentos() {
                 className="h-8 px-3"
               >
                 <CalendarDays className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">Calendário</span>
+                Calendário
+              </Button>
+              <Button
+                variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('kanban')}
+                className="h-8 px-3"
+              >
+                <Kanban className="w-4 h-4 mr-1" />
+                Kanban
+              </Button>
+            </div>
+            <Button variant="outline" size="sm">
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+            </Button>
+            <Button variant="gold" size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo
+            </Button>
+        </div>
+
+        {/* Mobile - Simplificado */}
+        <div className="sm:hidden space-y-3">
+            {/* Busca + Novo */}
+            <div className="flex gap-2">
+              <Input
+                type="search"
+                placeholder="Buscar..."
+                className="flex-1"
+              />
+              <Button variant="gold" size="sm" className="px-3">
+                <Plus className="w-4 h-4" />
               </Button>
             </div>
 
-            <Button variant="outline" size="sm" className="flex-1 sm:flex-initial">
-              <Filter className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Filtros</span>
-            </Button>
-            <Button variant="gold" size="sm" className="flex-1 sm:flex-initial">
-              <Plus className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Novo</span>
-              <span className="sm:hidden">Novo Agendamento</span>
-            </Button>
-          </div>
+            {/* Toggle Visualização */}
+            <div className="flex items-center gap-1 border border-gray-700 rounded-lg p-1">
+              <Button
+                variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('calendar')}
+                className="h-9 flex-1"
+              >
+                <CalendarDays className="w-4 h-4 mr-2" />
+                Calendário
+              </Button>
+              <Button
+                variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('kanban')}
+                className="h-9 flex-1"
+              >
+                <Kanban className="w-4 h-4 mr-2" />
+                Kanban
+              </Button>
+            </div>
         </div>
 
-        {/* Calendar Mode Selector - Only visible when in calendar view */}
+        {/* Filtros de Status - Apenas para calendário */}
         {viewMode === 'calendar' && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            <span className="text-sm text-gray-400 mr-2">Visualizar:</span>
-            <Button
-              variant={calendarMode === 'day' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCalendarMode('day')}
-              className="whitespace-nowrap"
-            >
-              <CalendarClock className="w-4 h-4 mr-1" />
-              Dia
-            </Button>
-            <Button
-              variant={calendarMode === 'week' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCalendarMode('week')}
-              className="whitespace-nowrap"
-            >
-              <CalendarRange className="w-4 h-4 mr-1" />
-              Semana
-            </Button>
-            <Button
-              variant={calendarMode === 'month' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCalendarMode('month')}
-              className="whitespace-nowrap"
-            >
-              <CalendarDays className="w-4 h-4 mr-1" />
-              Mês
-            </Button>
-            <Button
-              variant={calendarMode === 'year' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCalendarMode('year')}
-              className="whitespace-nowrap"
-            >
-              <Calendar className="w-4 h-4 mr-1" />
-              Ano
-            </Button>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+              <Button
+                variant={filter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('all')}
+                className="whitespace-nowrap flex-shrink-0"
+              >
+                Todos
+              </Button>
+              <Button
+                variant={filter === 'pending' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('pending')}
+                className="whitespace-nowrap flex-shrink-0"
+              >
+                Pendentes
+              </Button>
+              <Button
+                variant={filter === 'confirmed' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('confirmed')}
+                className="whitespace-nowrap flex-shrink-0"
+              >
+                Confirmados
+              </Button>
+              <Button
+                variant={filter === 'completed' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('completed')}
+                className="whitespace-nowrap flex-shrink-0"
+              >
+                Concluídos
+              </Button>
           </div>
         )}
+      </div>
 
-        {/* Calendar View */}
-        {viewMode === 'calendar' && (
+      {/* Calendar Mode Selector - Only visible when in calendar view */}
+      {viewMode === 'calendar' && (
+          <div className="mb-4">
+            {/* Desktop */}
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-sm text-gray-400 mr-1">Visualizar:</span>
+              <Button
+                variant={calendarMode === 'day' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarMode('day')}
+              >
+                <CalendarClock className="w-4 h-4 mr-1" />
+                Dia
+              </Button>
+              <Button
+                variant={calendarMode === 'week' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarMode('week')}
+              >
+                <CalendarRange className="w-4 h-4 mr-1" />
+                Semana
+              </Button>
+              <Button
+                variant={calendarMode === 'month' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarMode('month')}
+              >
+                <CalendarDays className="w-4 h-4 mr-1" />
+                Mês
+              </Button>
+              <Button
+                variant={calendarMode === 'year' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarMode('year')}
+              >
+                <Calendar className="w-4 h-4 mr-1" />
+                Ano
+              </Button>
+            </div>
+
+            {/* Mobile - Grid de 4 colunas */}
+            <div className="sm:hidden grid grid-cols-4 gap-2">
+              <Button
+                variant={calendarMode === 'day' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarMode('day')}
+                className="flex flex-col items-center gap-1 h-auto py-2"
+              >
+                <CalendarClock className="w-4 h-4" />
+                <span className="text-xs">Dia</span>
+              </Button>
+              <Button
+                variant={calendarMode === 'week' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarMode('week')}
+                className="flex flex-col items-center gap-1 h-auto py-2"
+              >
+                <CalendarRange className="w-4 h-4" />
+                <span className="text-xs">Semana</span>
+              </Button>
+              <Button
+                variant={calendarMode === 'month' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarMode('month')}
+                className="flex flex-col items-center gap-1 h-auto py-2"
+              >
+                <CalendarDays className="w-4 h-4" />
+                <span className="text-xs">Mês</span>
+              </Button>
+              <Button
+                variant={calendarMode === 'year' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCalendarMode('year')}
+                className="flex flex-col items-center gap-1 h-auto py-2"
+              >
+                <Calendar className="w-4 h-4" />
+                <span className="text-xs">Ano</span>
+              </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
           <CalendarView
             appointments={filteredAppointments}
             mode={calendarMode}
             onAppointmentClick={(apt) => console.log('Clicked appointment:', apt)}
-          />
-        )}
+        />
+      )}
 
-        {/* List View - Appointments Grid */}
-        {viewMode === 'list' && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {filteredAppointments.map((appointment, index) => (
-                <motion.div
-                  key={appointment.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card className={`${theme.colors.card.base} hover:shadow-lg transition-all duration-200 border-l-4 border-l-gold`}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <Badge variant={getStatusColor(appointment.status)}>
-                          {getStatusLabel(appointment.status)}
-                        </Badge>
-                        <span className="text-xl font-bold text-gold">
-                          {formatCurrency(appointment.price)}
-                        </span>
-                      </div>
-
-                      <h3 className={`text-lg font-bold ${theme.colors.text.primary} mb-3`}>
-                        {appointment.clientName}
-                      </h3>
-
-                      <div className="space-y-2 mb-4">
-                        <div className={`flex items-center gap-2 text-sm ${theme.colors.text.secondary}`}>
-                          <Scissors className="w-4 h-4 text-gold" />
-                          <span>{appointment.service}</span>
-                        </div>
-                        <div className={`flex items-center gap-2 text-sm ${theme.colors.text.secondary}`}>
-                          <User className="w-4 h-4 text-gold" />
-                          <span>{appointment.professional}</span>
-                        </div>
-                        <div className={`flex items-center gap-2 text-sm ${theme.colors.text.secondary}`}>
-                          <Calendar className="w-4 h-4 text-gold" />
-                          <span>{formatDate(appointment.date)}</span>
-                        </div>
-                        <div className={`flex items-center gap-2 text-sm ${theme.colors.text.secondary}`}>
-                          <Clock className="w-4 h-4 text-gold" />
-                          <span>{appointment.time} • {appointment.duration} min</span>
-                        </div>
-                      </div>
-
-                      <div className={`flex gap-2 pt-4 border-t ${theme.colors.border.light}`}>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          Editar
-                        </Button>
-                        <Button variant="ghost" size="sm" className="flex-1 text-gold hover:text-gold-dark">
-                          Detalhes
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {filteredAppointments.length === 0 && (
-              <div className="text-center py-12">
-                <Calendar className={`w-16 h-16 ${theme.colors.text.tertiary} mx-auto mb-4`} />
-                <h3 className={`text-lg font-semibold ${theme.colors.text.secondary} mb-2`}>
-                  Nenhum agendamento encontrado
-                </h3>
-                <p className={theme.colors.text.tertiary}>
-                  Tente ajustar os filtros ou criar um novo agendamento
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+      {/* Kanban View */}
+      {viewMode === 'kanban' && (
+          <KanbanView
+            appointments={mockAppointments}
+          onAppointmentClick={(apt) => console.log('Clicked appointment:', apt)}
+        />
+      )}
+    </OwnerPageLayout>
   )
 }

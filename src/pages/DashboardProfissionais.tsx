@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { DateRangePicker } from '@/components/DateRangePicker'
 import { mockAppointments, mockProfessionals } from '@/data/mockData'
 import { formatCurrency } from '@/lib/utils'
-import { theme, cardClasses, iconClasses, pageClasses } from '@/styles/theme'
+import { theme, cardClasses, iconClasses } from '@/styles/theme'
+import { OwnerPageLayout } from "@/components/layout/OwnerPageLayout"
 
 type DateRange = { from?: Date; to?: Date }
 
@@ -136,14 +137,11 @@ export function DashboardProfissionais() {
   }, [professionalStats])
 
   return (
-    <div className="min-h-screen text-white">
-      <div className={pageClasses.content()}>
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gold mb-2">Dashboard de Profissionais</h1>
-          <p className="text-sm text-gray-400">Análise de desempenho e estatísticas dos profissionais</p>
-        </div>
-
-        {/* Filtros */}
+    <OwnerPageLayout
+      title="Dashboard de Profissionais"
+      subtitle="Análise de desempenho e estatísticas dos profissionais"
+    >
+      {/* Filtros */}
         <div className="mb-6 flex flex-col sm:flex-row gap-3">
           <DateRangePicker
             dateRange={dateRange}
@@ -157,7 +155,7 @@ export function DashboardProfissionais() {
           variants={theme.animations.container}
           initial="hidden"
           animate="show"
-          className={pageClasses.statsGrid()}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
           <motion.div variants={theme.animations.item}>
             <Card className={cardClasses.statCard('green')}>
@@ -261,7 +259,7 @@ export function DashboardProfissionais() {
           </motion.div>
         </motion.div>
 
-        <div className={pageClasses.grid2()}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Ranking de Profissionais */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -454,7 +452,6 @@ export function DashboardProfissionais() {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
-    </div>
+    </OwnerPageLayout>
   )
 }

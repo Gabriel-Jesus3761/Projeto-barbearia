@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { mockAppointments } from "@/data/mockData";
 import { formatCurrency } from "@/lib/utils";
 import { DateRangePicker, type DateRange } from "@/components/DateRangePicker";
+import { OwnerPageLayout } from "@/components/layout/OwnerPageLayout";
 
 export default function DashboardVendas() {
   const today = new Date();
@@ -121,27 +122,18 @@ export default function DashboardVendas() {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="p-4 md:p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
-                Painel de Vendas
-              </h1>
-              <p className="text-gray-400">
-                Análise de desempenho de vendas e serviços
-              </p>
-            </div>
-            <DateRangePicker
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-            />
-          </div>
-        </div>
+    <OwnerPageLayout
+      title="Painel de Vendas"
+      subtitle="Análise de desempenho de vendas e serviços"
+    >
+      <div className="mb-6 flex justify-end">
+        <DateRangePicker
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+        />
+      </div>
 
-        {/* Stats Cards */}
+      {/* Stats Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -399,7 +391,6 @@ export default function DashboardVendas() {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
-    </div>
+    </OwnerPageLayout>
   );
 }

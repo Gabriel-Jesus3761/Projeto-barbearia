@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { mockProfessionals } from '@/data/mockData'
 import { cn } from '@/lib/utils'
-import { theme, pageClasses } from '@/styles/theme'
+import { theme } from '@/styles/theme'
+import { OwnerPageLayout } from '@/components/layout/OwnerPageLayout'
 
 type PaymentType = 'fixed' | 'percentage'
 
@@ -63,65 +64,59 @@ export function Profissionais() {
   }
 
   return (
-    <div className="min-h-screen text-white">
-      <div className={pageClasses.content()}>
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gold mb-2">Profissionais</h1>
-          <p className="text-sm text-gray-400">Gerencie sua equipe</p>
-        </div>
-
-        {/* Actions Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-          <div>
-            <h2 className={`text-lg md:text-xl font-semibold ${theme.colors.text.primary}`}>
+    <OwnerPageLayout title="Profissionais" subtitle="Gerencie sua equipe">
+      {/* Actions Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+        <div>
+          <h2 className={`text-lg md:text-xl font-semibold ${theme.colors.text.primary}`}>
               {mockProfessionals.length} Profissionais
             </h2>
             <p className={`text-xs md:text-sm ${theme.colors.text.secondary} mt-1`}>
               {mockProfessionals.filter(p => p.available).length} disponíveis para agendamento
-            </p>
-          </div>
+          </p>
+        </div>
 
-          <Button
+        <Button
             variant="gold"
             size="sm"
             className="w-full sm:w-auto"
             onClick={() => setIsAddProfModalOpen(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Adicionar Profissional
-          </Button>
-        </div>
+          Adicionar Profissional
+        </Button>
+      </div>
 
-        {/* Professionals Grid */}
-        <motion.div
+      {/* Professionals Grid */}
+      <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-        >
-          {mockProfessionals.map((professional, index) => (
-            <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      >
+        {mockProfessionals.map((professional, index) => (
+          <motion.div
               key={professional.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-            >
-              <Card className={`h-full ${theme.colors.card.base} hover:shadow-xl transition-all duration-300 group border-l-4 border-l-gold`}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between mb-3">
+            transition={{ delay: index * 0.1 }}
+            whileHover={{ y: -5 }}
+          >
+            <Card className={`h-full ${theme.colors.card.base} hover:shadow-xl transition-all duration-300 group border-l-4 border-l-gold`}>
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between mb-3">
                     <div className="bg-gradient-to-br from-gold to-gold-dark p-3 rounded-lg">
                       <Users className="w-6 h-6 text-white" />
                     </div>
                     <Badge variant={professional.available ? "success" : "destructive"}>
                       {professional.available ? "Disponível" : "Indisponível"}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-lg group-hover:text-gold transition-colors">
+                  </Badge>
+                </div>
+                <CardTitle className="text-lg group-hover:text-gold transition-colors">
                     {professional.name}
-                  </CardTitle>
-                </CardHeader>
+                </CardTitle>
+              </CardHeader>
 
-                <CardContent>
+              <CardContent>
                   <p className={`text-sm ${theme.colors.text.secondary} mb-4`}>
                     {professional.role}
                   </p>
@@ -185,14 +180,13 @@ export function Profissionais() {
                     </Button>
                     <Button variant="ghost" size="sm" className="w-full text-gold hover:text-gold-dark hover:bg-white/5">
                       Ver Perfil Completo
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Modal de Adicionar Profissional */}
       <AnimatePresence>
@@ -462,6 +456,6 @@ export function Profissionais() {
           </>
         )}
       </AnimatePresence>
-    </div>
+    </OwnerPageLayout>
   )
 }
